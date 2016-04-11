@@ -4,18 +4,19 @@ library(Rcpp)
 library(coda)
 library(lattice)
 library(BoSSA)
+sourceCpp("scorecpp/scoreR.cpp")
 set.seed(42)
 
 MAX_SCORE = 14
 MASS_PROTON = 1.00728
-TOTAL_MASS =  1007.653
+TOTAL_MASS =  1007.65
 
 mat <- as.matrix(read.table("matrix"))
 rule <- read.table("rule_graph")
 
-
 max.W = 100
 sz <- 8
+
 ilya <- c(296.089,  324.153,  327.999,  338.181,  341.846,  359.415,  366.881,
              372.44,  386.08,   395.07,   423.098,  433.021,  437.202,  441.282, 
              455.124,  462.093,  464.852,  481.362,  483.64,   508.513,  533.283, 
@@ -27,74 +28,22 @@ ilya <- c(296.089,  324.153,  327.999,  338.181,  341.846,  359.415,  366.881,
              909.388,  913.777,  933.373,  939.125,  951.488,  959.293,  988.316, 
              989.367) 
 
-sorted.subject <- sort(ilya, decreasing = TRUE)
-
 modify.mass <- function(mass) {
   id <- sample(1:sz, 1)
-  beg <-  rule[id, 1]
-  end <-  rule[id, 2]
-  delta <- runif(1, min = -beg, max = end)
+  beg <-  rule[id, 1] + 1
+  end <-  rule[id, 2] + 1
+  delta <- runif(1, min = -mass[beg], max = mass[end])
   new.mass <- mass
   new.mass[beg] = mass[beg] + delta
   new.mass[end] = mass[end] - delta
   return(new.mass)
 }
 
-get.score <-  function(mass, max.diff = 0.5) {
-  score <- 0
-  spector <-  mat %*% mass
-  spector <- sort(spector, decreasing = TRUE)
-  b.ion <- spector + MASS_PROTON
-  y.ion <- sum(mass) - spector + MASS_PROTON
-  
-  n <- length(spector)
-  m <- length(sorted.subject)
-  
-  mark <- logical(m)
-  for (i in 1:n) {
-    for (k in 1:m) {
-      if(mark[k])
-        next 
-      
-      if (abs(b.ion[i] - sorted.subject[k]) <  max.diff) {
-        score <- score + 1
-        #         print("b.ion")
-        #         print(b.ion[i])
-        #         print(sorted.subject[k])
-        #         print("-----------")
-        mark[k] = TRUE
-      }
-    }
-  }
-  
-  for (i in 1:n) {
-    for (k in 1:m) {
-      if(mark[k])
-        next 
-      
-      if (abs(y.ion[i] - sorted.subject[k]) <  max.diff) {
-        score <- score + 1
-        #         print("y.ion")
-        #         print(y.ion[i])
-        #         print(sorted.subject[k])
-        #         print("-----------")
-        mark[k] = TRUE
-      }
-    }
-  }
-  return(score)
-}
+get.score <- function(mass) 
+  get_score(sort(ilya), sort(mat%*%mass))
 
-
-# masses.data <- read.table("masses")
-# i <- 2
-# vec <- as.numeric(masses.data[i, ])
-# get.score(vec)
-
-
-weight.spector <- function(score, s.min = 0) {
+weight.spector <- function(score, s.min = 0) 
   log(score - s.min + 1)
-}
 
 mh.update <- function(mass, score, lweight.spector) {
   new.mass <- modify.mass(mass)
@@ -106,7 +55,6 @@ mh.update <- function(mass, score, lweight.spector) {
   lold.weight <- lweight.spector(score)
   lnew.weight <- lweight.spector(new.score)
   
-  # This assumes that sequence is iid
   alpha <- min(1, exp(lnew.weight - lold.weight))
   if (runif(1) < alpha) {
     score <- new.score
@@ -115,27 +63,10 @@ mh.update <- function(mass, score, lweight.spector) {
   list(mass = mass, score = score)
 }
 
-tmp <- sample(1:max.W, 8, replace = TRUE)
-start.mass <- (tmp/sum(tmp)*TOTAL_MASS)
+start.mass <- sample(1:max.W, 8, replace = TRUE)
+start.mass <- start.mass*TOTAL_MASS/sum(start.mass)
 score <- get.score(start.mass)
-score
-#===========================
 
-#theoretical p-value 
-pval.est <- function(N, score.1 = 14) {
-  v <- numeric(N)
-  for (i in 1:N) {
-    tmp <- sample(1:max.W, 8, replace = TRUE)
-    tmp.mass <- (tmp/sum(tmp)*TOTAL_MASS)
-    v[i] <- get.score(tmp.mass)
-  }
-  return((length(v[v >= score.1]))/N)
-}
-
-# N <- 500000
-# est <- pval.est(N)
-# est
-#======================================================================
 mh.usual <- function(N) {
   i <- 1
   v <- numeric(N)
@@ -153,8 +84,9 @@ mh.usual <- function(N) {
   v
 }
 
-mh.weighted <- function(N, w, s.min) {
-  weight.w <- function(score) { w[score - s.min + 1]}
+mh.weighted <- function(N, w, s.min, trace = TRUE) {
+  weight.w <- function(score) { 
+    w[score - s.min + 1]}
   
   i <- 1
   v <- numeric(N)
@@ -166,8 +98,12 @@ mh.weighted <- function(N, w, s.min) {
     }
     v[i] <- l$score
     i <- i + 1
+    if (i %% 1000 == 0) {
+      if (trace) {
+        cat(sprintf("iteration %d\n", i))
+      }
+    }
   }
-  
   v
 }
 
@@ -177,11 +113,14 @@ wl.step <- function(s.min, s.max, phi,
   if (missing(w))
     w <- log(rep(1, length.out = s.max - s.min + 1))
   lphi <- log(phi)
-  weight.wl <- function(score) { w[score - s.min + 1]}
+  weight.wl <- function(score) {
+    w[score - s.min + 1]
+    }
   
   tmp <- sample(1:max.W, 8, replace = TRUE)
   start.mass <- (tmp/sum(tmp)*TOTAL_MASS)
   score <- get.score(start.mass)
+  
   #temp!
   if (score > MAX_SCORE) {
     score <- MAX_SCORE 
@@ -200,9 +139,11 @@ wl.step <- function(s.min, s.max, phi,
     w[idx] <- w[idx] - lphi
     if (i > thr)
       break
-    if (i %% 10000 == 0) {
+    if (i %% 100 == 0) {
       if (trace) {
         cat(sprintf("iteration %d\n", i))
+#         print(w)
+#         print(h)
       }
       if (all(h > 0.6 * mean(h)) && all(h > 20)) {
         break
@@ -214,7 +155,7 @@ wl.step <- function(s.min, s.max, phi,
 }
 
 wl <- function(s.min, s.max,
-               phi.start = exp(0.1), phi.end = exp(0.0002),
+               phi.start = exp(0.3), phi.end = exp(0.0001),
                thr = 100500,
                trace = TRUE) {
   phi <- phi.start
@@ -231,30 +172,38 @@ wl <- function(s.min, s.max,
 #-----------------------------------------------------------------------------------------------------------------------
 #test if everything is correct 
 weights <- wl(0, MAX_SCORE)
-exp(weights)
-L <- 1000000
+s.min <- 0
+ww <- exp(weights)
+L <- 1000000      
 one.traj <- mh.weighted(L, s.min = 0, w = weights)
 one.traj
-plot(cumsum(one.traj < 12)/1:L, lwd = 3, ty = "l", xlab = "number of simulations", ylab = "Cumulative mean")
+plot(cumsum(one.traj < 10)/1:L, lwd = 3, ty = "l", xlab = "number of simulations", ylab = "Cumulative mean")
 
-# burn.in <- 4e+05
-# eff.traj <- one.traj[-(1:burn.in)]
-# autocorr.diag(mcmc(one.traj), lags = c(2000))
-# # autocorr.diag(mcmc(one.traj), lags = c(1500, 2000))
-# effectiveSize(mcmc(one.traj))
-# eff.traj <- eff.traj[seq(1, length(eff.traj), 2000)]
-# length(eff.traj)
-# s.min <- 2
-# prob.const <- sum((exp(weights[eff.traj  - s.min + 1]))^(-1))
-# my.est <- sum((exp(weights[eff.traj[eff.traj >= score] - s.min + 1]))^(-1))/prob.const
-# my.est
-# score
-# 1/4^20
-# summary(mcmc(one.traj, thin = 200))
-# 
-# my.est + qnorm((.95  + 1)/2)*0.011795/1005000
-# my.est - qnorm((.95  + 1)/2)*0.011795/1005000 
-# start
-# score
+burn.in <- 2e+05
+eff.traj <- one.traj[-(1:burn.in)]
+# autocorr.diag(mcmc(one.traj), lags = c(100, 500, 1000))
+eff.traj <- eff.traj[seq(1, length(eff.traj), 500)]
 
+# eff.traj <- one.traj
+prob.const <- sum((ww[eff.traj  - s.min + 1])^(-1))
+my.est <- sum((ww[eff.traj[eff.traj >= 10] - s.min + 1])^(-1))/prob.const
+my.est
+s.min
+#==========Standard MC=================
+pval.est <- function(N, score.1 = 10, trace = TRUE) {
+  v <- numeric(N)
+  for (i in 1:N) {
+    tmp <- sample(1:max.W, 8, replace = TRUE)
+    tmp.mass <- (tmp/sum(tmp)*TOTAL_MASS)
+    v[i] <- get.score(tmp.mass)
+    if (i %% 1000 == 0) {
+      if (trace) {
+        cat(sprintf("iteration %d\n", i))
+      }
+    }
+  }
+  return((length(v[v >= score.1]))/N)
+}
 
+N <- 100000
+pval.est(N)
