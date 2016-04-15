@@ -201,7 +201,7 @@ se.bm <- function(x, g = function(x) x) {
     var.hat <- b * sum((y - mu.hat)^2) / (a - 1)
     se <- sqrt(var.hat / n)
 
-    list(mu = mu.hat, se = se)
+    list(mu = mu.hat, se.mean = se, var = var.hat)
 }
 
 se.obm <- function(x, g = function(x) x) {
@@ -217,7 +217,7 @@ se.obm <- function(x, g = function(x) x) {
     var.hat <- n * b * sum((y - mu.hat)^2) / (a - 1) / a
     se <- sqrt(var.hat / n)
 
-    list(mu = mu.hat, se = se)
+    list(mu = mu.hat, se.mean = se, var = var.hat)
 }
 
 
@@ -235,7 +235,7 @@ se.tukey <- function(x, g = function(x) x) {
     var.hat <- R[1] + 2 * sum(alpha * R[-1])
     se <- sqrt(var.hat / n)
 
-    list(mu = mu.hat, se = se)
+    list(mu = mu.hat, se.mean = se, var = var.hat)
 }
 
 
@@ -253,7 +253,7 @@ se.bartlett <- function(x, g = function(x) x) {
     var.hat <- R[1] + 2 * sum(alpha * R[-1])
     se <- sqrt(var.hat / n)
 
-    list(mu = mu.hat, se = se)
+    list(mu = mu.hat, se.mean = se, var = var.hat)
 }
 
 #==========Standard MC=================
