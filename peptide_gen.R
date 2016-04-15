@@ -27,7 +27,7 @@ surfactin <- c(296.089,  324.153,  327.999,  338.181,  341.846,  359.415,  366.8
 surfactin <- sort(surfactin)
 
 modify.mass <- function(mass) {
-  id <- sample(nrow(rule), 1)
+  id <- sample.int(nrow(rule), 1)
   beg <-  rule[id, 1] + 1
   end <-  rule[id, 2] + 1
   beg.mass <- mass[beg]
@@ -41,7 +41,7 @@ modify.mass <- function(mass) {
 }
 
 get.score <- function(mass) 
-  get_score(surfactin, sort(mat%*%mass))
+  get_score(surfactin, .Internal(qsort(mat%*%mass, FALSE)))
 
 source("wl.R")
 source("mh.R")
@@ -51,7 +51,7 @@ source("se.R")
 #test if everything is correct 
 weights <- wl(0, MAX_SCORE)
 
-start.mass <- sample(1:max.W, 8, replace = TRUE)
+start.mass <- sample.int(max.W, 8, replace = TRUE)
 start.mass <- start.mass*TOTAL_MASS/sum(start.mass)
 start.score <- get.score(start.mass)
 
