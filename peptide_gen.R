@@ -41,7 +41,7 @@ modify.mass <- function(mass) {
 }
 
 get.score <- function(mass)
-  get_score(surfactin, .Internal(qsort(mat%*%mass, FALSE)))
+  score_peak(surfactin, mat %*% mass)
 
 source("wl.R")
 source("mh.R")
