@@ -1,4 +1,4 @@
-setwd("/home/sliplove/Documents/Masters/reports/peptideMasters/")
+setwd("/home/sliplove/Documents/Masters")
 library(Biostrings)
 library(Rcpp)
 library(coda)
@@ -10,10 +10,12 @@ set.seed(42)
 MAX_SCORE = 14
 MASS_PROTON = 1.00728
 TOTAL_MASS =  1007.65
-sz = 8
 
 mat <- as.matrix(read.table("matrix"))
 rule <- read.table("rule_graph")
+
+max.W = 100
+sz <- 8
 
 ilya <- c(296.089,  324.153,  327.999,  338.181,  341.846,  359.415,  366.881,
              372.44,  386.08,   395.07,   423.098,  433.021,  437.202,  441.282, 
@@ -61,7 +63,7 @@ mh.update <- function(mass, score, lweight.spector) {
   list(mass = mass, score = score)
 }
 
-start.mass <- sample(1:TOTAL_MASS, sz, replace = TRUE)
+start.mass <- sample(1:max.W, 8, replace = TRUE)
 start.mass <- start.mass*TOTAL_MASS/sum(start.mass)
 score <- get.score(start.mass)
 
@@ -96,7 +98,7 @@ mh.weighted <- function(N, w, s.min, trace = TRUE) {
     }
     v[i] <- l$score
     i <- i + 1
-    if (i %% 10000 == 0) {
+    if (i %% 1000 == 0) {
       if (trace) {
         cat(sprintf("iteration %d\n", i))
       }
@@ -115,7 +117,7 @@ wl.step <- function(s.min, s.max, phi,
     w[score - s.min + 1]
     }
   
-  tmp <- sample(1:TOTAL_MASS, sz, replace = TRUE)
+  tmp <- sample(1:max.W, 8, replace = TRUE)
   start.mass <- (tmp/sum(tmp)*TOTAL_MASS)
   score <- get.score(start.mass)
   
@@ -131,18 +133,19 @@ wl.step <- function(s.min, s.max, phi,
     if(l$score > MAX_SCORE) {
       l$score <- MAX_SCORE
     }
+    
     idx <- l$score - s.min + 1
     h[idx] <- h[idx] + 1
     w[idx] <- w[idx] - lphi
     if (i > thr)
       break
-    if (i %% 500 == 0) {
+    if (i %% 100 == 0) {
       if (trace) {
         cat(sprintf("iteration %d\n", i))
-        print(w)
-        print(h)
+#         print(w)
+#         print(h)
       }
-      if (all(h > 0.6 * mean(h)) && all(h > 30)) {
+      if (all(h > 0.6 * mean(h)) && all(h > 20)) {
         break
       }
     }
@@ -152,7 +155,7 @@ wl.step <- function(s.min, s.max, phi,
 }
 
 wl <- function(s.min, s.max,
-               phi.start = exp(0.6), phi.end = exp(0.00003),
+               phi.start = exp(0.3), phi.end = exp(0.0001),
                thr = 100500,
                trace = TRUE) {
   phi <- phi.start
@@ -171,25 +174,26 @@ wl <- function(s.min, s.max,
 weights <- wl(0, MAX_SCORE)
 s.min <- 0
 ww <- exp(weights)
-
 L <- 1000000      
 one.traj <- mh.weighted(L, s.min = 0, w = weights)
+one.traj
 plot(cumsum(one.traj < 10)/1:L, lwd = 3, ty = "l", xlab = "number of simulations", ylab = "Cumulative mean")
 
-burn.in <- 4e+05
+burn.in <- 2e+05
 eff.traj <- one.traj[-(1:burn.in)]
 # autocorr.diag(mcmc(one.traj), lags = c(100, 500, 1000))
 eff.traj <- eff.traj[seq(1, length(eff.traj), 500)]
-length(eff.traj)
+
 # eff.traj <- one.traj
 prob.const <- sum((ww[eff.traj  - s.min + 1])^(-1))
-my.est <- sum((ww[eff.traj[eff.traj >= 14] - s.min + 1])^(-1))/prob.const
+my.est <- sum((ww[eff.traj[eff.traj >= 10] - s.min + 1])^(-1))/prob.const
 my.est
+s.min
 #==========Standard MC=================
 pval.est <- function(N, score.1 = 10, trace = TRUE) {
   v <- numeric(N)
   for (i in 1:N) {
-    tmp <- sample(1:TOTAL_MASS, sz, replace = TRUE)
+    tmp <- sample(1:max.W, 8, replace = TRUE)
     tmp.mass <- (tmp/sum(tmp)*TOTAL_MASS)
     v[i] <- get.score(tmp.mass)
     if (i %% 1000 == 0) {
@@ -198,17 +202,8 @@ pval.est <- function(N, score.1 = 10, trace = TRUE) {
       }
     }
   }
-  v
-  # return((length(v[v >= score.1]))/N)
+  return((length(v[v >= score.1]))/N)
 }
 
-N <- 10000000
-vec <- pval.est(N)
-h <- hist(vec)
-weights <- 1/h$density
-v <- vec
-score.1 <- 14
-est <- (length(v[v >= score.1]))/N
-est - 1.96*sqrt(est*(1-est)/N)
-est + 1.96*sqrt(est*(1-est)/N)
-
+N <- 100000
+pval.est(N)
