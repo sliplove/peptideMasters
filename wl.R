@@ -10,7 +10,7 @@ wl.step <- function(s.min, s.max, phi,
   }
 
   # FIXME
-  tmp <- sample(1:max.W, 8, replace = TRUE)
+  tmp <- sample.int(max.W, 8, replace = TRUE)
   start.mass <- (tmp/sum(tmp)*TOTAL_MASS)
   start.score <- get.score(start.mass)
 
