@@ -24,6 +24,7 @@ surfactin <- c(296.089,  324.153,  327.999,  338.181,  341.846,  359.415,  366.8
                842.327,  847.555,  848.771,  849.451,  877.359,  893.387,  895.455, 
                909.388,  913.777,  933.373,  939.125,  951.488,  959.293,  988.316, 
                989.367)
+surfactin <- sort(surfactin)
 
 modify.mass <- function(mass) {
   id <- sample(1:nrow(rule), 1)
@@ -38,7 +39,7 @@ modify.mass <- function(mass) {
 }
 
 get.score <- function(mass) 
-  get_score(sort(surfactin), sort(mat%*%mass))
+  get_score(surfactin, sort(mat%*%mass))
 
 source("wl.R")
 source("mh.R")
