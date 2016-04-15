@@ -14,24 +14,24 @@ wl.step <- function(s.min, s.max, phi,
   start.mass <- (tmp/sum(tmp)*TOTAL_MASS)
   start.score <- get.score(start.mass)
 
-  score <- min(score, MAX_SCORE)
+  start.score <- min(start.score, MAX_SCORE)
   l <- list(mass = start.mass, score = start.score)
   i <- 1
   repeat {
     l <- do.call(mh.update, c(l, weight.wl))
-    score <- min(score, MAX_SCORE)
+    score <- min(l$score, MAX_SCORE)
     idx <- l$score - s.min + 1
     h[idx] <- h[idx] + 1
     w[idx] <- w[idx] - lphi
     if (i > thr)
       break
-    if (i %% 100 == 0) {
+    if (i %% 1000 == 0) {
       if (trace) {
         cat(sprintf("iteration %d\n", i))
         # print(w)
         # print(h)
       }
-      if (all(h[c(FALSE, TRUE)] > 0.6 * mean(h[c(FALSE, TRUE)])) && all(h[c(FALSE, TRUE)] > 30)) {
+      if (all(h > 0.6 * mean(h)) && all(h > 20)) {
         break
       }
     }
