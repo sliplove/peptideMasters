@@ -190,6 +190,64 @@ g <- function(x) ifelse(x >= 10, exp(-weights[x - s.min + 1]), 0) / prob.const
 my.est <- mean(g(eff.traj))
 my.est
 s.min
+
+se.bm <- function(x, g = function(x) x) {
+    n <- length(x)
+    b <- floor(sqrt(n))
+    a <- floor(n / b)
+
+    y <- sapply(1:a, function(k) mean(g(x[((k - 1) * b + 1):(k * b)])))
+    mu.hat <- mean(g(x))
+    var.hat <- b * sum((y - mu.hat)^2) / (a - 1)
+    se <- sqrt(var.hat / n)
+
+    list(mu = mu.hat, se = se)
+}
+
+se.obm <- function(x, g = function(x) x) {
+    n <- length(x)
+    b <- floor(sqrt(n))
+    a <- n - b + 1
+
+    y <- sapply(1:a, function(k) mean(g(x[k:(k + b - 1)])))
+    mu.hat <- mean(g(x))
+    var.hat <- n * b * sum((y - mu.hat)^2) / (a - 1) / a
+    se <- sqrt(var.hat / n)
+
+    list(mu = mu.hat, se = se)
+}
+
+se.tukey <- function(x, g = function(x) x) {
+    n <- length(x)
+    b <- floor(sqrt(n))
+    a <- floor(n / b)
+
+    alpha <- 1:b
+    alpha <- (1 + cos(pi * alpha / b)) / 2 * (1 - alpha / n)
+    mu.hat <- mean(g(x))
+    R <- sapply(0:b, function(j) mean((g(x[1:(n - j)]) - mu.hat) * (g(x[(j + 1):n]) - mu.hat)))
+    var.hat <- R[1] + 2 * sum(alpha * R[-1])
+    se <- sqrt(var.hat / n)
+
+    list(mu = mu.hat, se = se)
+}
+
+
+se.bartlett <- function(x, g = function(x) x) {
+    n <- length(x)
+    b <- floor(sqrt(n))
+    a <- floor(n / b)
+
+    alpha <- 1:b
+    alpha = (1 - abs(alpha) / b) * (1 - alpha / n)
+    mu.hat <- mean(g(x))
+    R <- sapply(0:b, function(j) mean((g(x[1:(n - j)]) - mu.hat) * (g(x[(j + 1):n]) - mu.hat)))
+    var.hat <- R[1] + 2 * sum(alpha * R[-1])
+    se <- sqrt(var.hat / n)
+
+    list(mu = mu.hat, se = se)
+}
+
 #==========Standard MC=================
 pval.est <- function(N, score.1 = 10, trace = TRUE) {
   v <- numeric(N)
