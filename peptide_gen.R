@@ -228,8 +228,10 @@ se.tukey <- function(x, g = function(x) x) {
 
     alpha <- 1:b
     alpha <- (1 + cos(pi * alpha / b)) / 2 * (1 - alpha / n)
-    mu.hat <- mean(g(x))
-    R <- sapply(0:b, function(j) mean((g(x[1:(n - j)]) - mu.hat) * (g(x[(j + 1):n]) - mu.hat)))
+    gx <- g(x)
+    mu.hat <- mean(gx)
+    # FIXME: FFT
+    R <- sapply(0:b, function(j) mean((gx[1:(n - j)] - mu.hat) * (gx[(j + 1):n] - mu.hat)))
     var.hat <- R[1] + 2 * sum(alpha * R[-1])
     se <- sqrt(var.hat / n)
 
@@ -244,8 +246,10 @@ se.bartlett <- function(x, g = function(x) x) {
 
     alpha <- 1:b
     alpha = (1 - abs(alpha) / b) * (1 - alpha / n)
-    mu.hat <- mean(g(x))
-    R <- sapply(0:b, function(j) mean((g(x[1:(n - j)]) - mu.hat) * (g(x[(j + 1):n]) - mu.hat)))
+    gx <- g(x)
+    mu.hat <- mean(gx)
+    # FIXME: FFT
+    R <- sapply(0:b, function(j) mean((gx[1:(n - j)] - mu.hat) * (gx[(j + 1):n] - mu.hat)))
     var.hat <- R[1] + 2 * sum(alpha * R[-1])
     se <- sqrt(var.hat / n)
 
