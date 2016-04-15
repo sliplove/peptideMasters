@@ -4,11 +4,13 @@ se.bm <- function(x, g = function(x) x) {
   a <- floor(n / b)
   
   y <- sapply(1:a, function(k) mean(g(x[((k - 1) * b + 1):(k * b)])))
-  mu.hat <- mean(g(x))
+  gx <- g(x)
+  mu.hat <- mean(gx)
   var.hat <- b * sum((y - mu.hat)^2) / (a - 1)
   se <- sqrt(var.hat / n)
+  lambda <- var(gx)
   
-  list(mu = mu.hat, se.mean = se, var = var.hat)
+  list(mu = mu.hat, se.mean = se, var = var.hat, lambda = lambda)
 }
 
 se.obm <- function(x, g = function(x) x) {
@@ -23,8 +25,9 @@ se.obm <- function(x, g = function(x) x) {
   mu.hat <- mean(gx)
   var.hat <- n * b * sum((y - mu.hat)^2) / (a - 1) / a
   se <- sqrt(var.hat / n)
+  lambda <- var(gx)
   
-  list(mu = mu.hat, se.mean = se, var = var.hat)
+  list(mu = mu.hat, se.mean = se, var = var.hat, lambda = lambda)
 }
 
 
@@ -41,8 +44,9 @@ se.tukey <- function(x, g = function(x) x) {
   R <- sapply(0:b, function(j) mean((gx[1:(n - j)] - mu.hat) * (gx[(j + 1):n] - mu.hat)))
   var.hat <- R[1] + 2 * sum(alpha * R[-1])
   se <- sqrt(var.hat / n)
+  lambda <- var(gx)
   
-  list(mu = mu.hat, se.mean = se, var = var.hat)
+  list(mu = mu.hat, se.mean = se, var = var.hat, lambda = lambda)
 }
 
 
@@ -59,6 +63,7 @@ se.bartlett <- function(x, g = function(x) x) {
   R <- sapply(0:b, function(j) mean((gx[1:(n - j)] - mu.hat) * (gx[(j + 1):n] - mu.hat)))
   var.hat <- R[1] + 2 * sum(alpha * R[-1])
   se <- sqrt(var.hat / n)
-  
-  list(mu = mu.hat, se.mean = se, var = var.hat)
+  lambda <- var(gx)
+
+  list(mu = mu.hat, se.mean = se, var = var.hat, lambda = lambda)
 }
