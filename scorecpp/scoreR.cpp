@@ -21,8 +21,8 @@ double score_peak(DoubleVector spectrum, DoubleVector peak_masses) {
   double score = 0;
   double product_ion_thresh = 0.5;
   auto pmb = peak_masses.begin();
-  auto pme = std::reverse_iterator<decltype(peak_masses.begin())>(peak_masses.end());
-  auto rpme = std::reverse_iterator<decltype(peak_masses.end())>(peak_masses.begin());
+  auto pme = std::reverse_iterator<decltype(peak_masses.end())>(peak_masses.end());
+  auto rpme = std::reverse_iterator<decltype(peak_masses.begin())>(peak_masses.begin());
 
   for (const auto& rp: spectrum) {
     double thr = rp - product_ion_thresh - MASS_PROTON;
