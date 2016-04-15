@@ -209,13 +209,17 @@ se.obm <- function(x, g = function(x) x) {
     b <- floor(sqrt(n))
     a <- n - b + 1
 
-    y <- sapply(1:a, function(k) mean(g(x[k:(k + b - 1)])))
-    mu.hat <- mean(g(x))
+    gx <- g(x)
+    cgx <- c(0, cumsum(gx))
+
+    y <- diff(cgx, lag = b) / b
+    mu.hat <- mean(gx)
     var.hat <- n * b * sum((y - mu.hat)^2) / (a - 1) / a
     se <- sqrt(var.hat / n)
 
     list(mu = mu.hat, se = se)
 }
+
 
 se.tukey <- function(x, g = function(x) x) {
     n <- length(x)
