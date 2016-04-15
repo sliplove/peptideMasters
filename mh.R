@@ -28,7 +28,7 @@ mh.usual <- function(N, start.mass, start.score) {
     i <- i + 1
   }
   
-  v
+  c(list(traj = v), l)
 }
 
 mh.weighted <- function(N, w, start.mass, start.score, s.min, trace = TRUE) {
@@ -50,5 +50,5 @@ mh.weighted <- function(N, w, start.mass, start.score, s.min, trace = TRUE) {
       }
     }
   }
-  v
+  c(list(traj = v), l)
 }
