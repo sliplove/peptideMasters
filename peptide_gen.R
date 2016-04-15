@@ -184,9 +184,10 @@ eff.traj <- one.traj[-(1:burn.in)]
 # autocorr.diag(mcmc(one.traj), lags = c(100, 500, 1000))
 eff.traj <- eff.traj[seq(1, length(eff.traj), 500)]
 
-# eff.traj <- one.traj
-prob.const <- sum((ww[eff.traj  - s.min + 1])^(-1))
-my.est <- sum((ww[eff.traj[eff.traj >= 10] - s.min + 1])^(-1))/prob.const
+eff.traj <- one.traj
+prob.const <- sum(exp(-weights[eff.traj - s.min + 1])) / length(eff.traj)
+g <- function(x) ifelse(x >= 10, exp(-weights[x - s.min + 1]), 0) / prob.const
+my.est <- mean(g(eff.traj))
 my.est
 s.min
 #==========Standard MC=================
