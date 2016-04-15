@@ -12,10 +12,10 @@ wl.step <- function(s.min, s.max, phi,
   # FIXME
   tmp <- sample(1:max.W, 8, replace = TRUE)
   start.mass <- (tmp/sum(tmp)*TOTAL_MASS)
-  score <- get.score(start.mass)
+  start.score <- get.score(start.mass)
 
   score <- min(score, MAX_SCORE)
-  l <- list(mass = start.mass, score = score)
+  l <- list(mass = start.mass, score = start.score)
   i <- 1
   repeat {
     l <- do.call(mh.update, c(l, weight.wl))
