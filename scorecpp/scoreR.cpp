@@ -14,6 +14,26 @@ const bool keep_both = false;
 
 // [[Rcpp::plugins(cpp11)]]
 
+
+// [[Rcpp::export]]
+DoubleVector update_mass(DoubleVector peak_masses, IntegerMatrix rule) {
+  int id = floor(unif_rand() * rule.nrow());
+
+  int beg = rule(id, 0);
+  int end = rule(id, 1);
+
+  double beg_mass = peak_masses[beg], end_mass = peak_masses[end];
+  double delta = R::runif(-beg_mass, end_mass);
+
+  DoubleVector res = clone(peak_masses);
+  
+  res[beg] = beg_mass + delta;
+  res[end] = end_mass - delta;
+
+  return res;
+}
+
+
 // [[Rcpp::export]]
 double score_peak(DoubleVector spectrum, DoubleVector peak_masses) {
   std::sort(peak_masses.begin(), peak_masses.end(), [](double a, double b) { return a < b; });

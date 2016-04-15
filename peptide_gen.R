@@ -26,19 +26,8 @@ surfactin <- c(296.089,  324.153,  327.999,  338.181,  341.846,  359.415,  366.8
                989.367)
 surfactin <- sort(surfactin)
 
-modify.mass <- function(mass) {
-  id <- sample.int(nrow(rule), 1)
-  beg <-  rule[id, 1] + 1
-  end <-  rule[id, 2] + 1
-  beg.mass <- mass[beg]
-  end.mass <- mass[end]
-  delta <- runif(1, min = -beg.mass, max = end.mass)
-
-  mass[beg] <- beg.mass + delta
-  mass[end] <- end.mass - delta
-
-  mass
-}
+modify.mass <- function(mass)
+  update_mass(mass, rule)
 
 get.score <- function(mass)
   score_peak(surfactin, mat %*% mass)
