@@ -186,7 +186,7 @@ eff.traj <- eff.traj[seq(1, length(eff.traj), 500)]
 
 eff.traj <- one.traj
 prob.const <- sum(exp(-weights[eff.traj - s.min + 1])) / length(eff.traj)
-g <- function(x) ifelse(x >= 10, exp(-weights[x - s.min + 1]), 0) / prob.const
+g <- function(x) (x >= 10) * exp(-weights[x - s.min + 1]) / prob.const
 my.est <- mean(g(eff.traj))
 my.est
 s.min
