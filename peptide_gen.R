@@ -10,7 +10,7 @@ MASS_PROTON = 1.00728
 TOTAL_MASS =  1007.65
 
 mat <- as.matrix(read.table("matrix"))
-rule <- read.table("rule_graph")
+rule <- as.matrix(read.table("rule_graph"))
 
 max.W = 100
 
