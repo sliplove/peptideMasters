@@ -12,7 +12,7 @@ TOTAL_MASS =  1007.65
 mat <- as.matrix(read.table("matrix"))
 rule <- as.matrix(read.table("rule_graph"))
 
-max.W = 100
+max.W = TOTAL_MASS
 
 surfactin <- c(296.089,  324.153,  327.999,  338.181,  341.846,  359.415,  366.881,
                372.44,   386.08,   395.07,   423.098,  433.021,  437.202,  441.282,
