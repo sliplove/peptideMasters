@@ -43,26 +43,7 @@ weights <- wl(0, MAX_SCORE)
 start.mass <- sample.int(max.W, 8, replace = TRUE)
 start.mass <- start.mass*TOTAL_MASS/sum(start.mass)
 start.score <- get.score(start.mass)
-
 s.min <- 0
-ww <- exp(weights)
-L <- 1000000
-one.traj <- mh.weighted(L,
-                        start.mass = start.mass, start.score = start.score,
-                        s.min = 0, w = weights)
-
-one.traj
-plot(cumsum(one.traj$traj < 10)/1:L, lwd = 3, ty = "l", xlab = "number of simulations", ylab = "Cumulative mean")
-
-burn.in <- 2e+05
-eff.traj <- one.traj$traj[-(1:burn.in)]
-# autocorr.diag(mcmc(one.traj), lags = c(100, 500, 1000))
-eff.traj <- eff.traj[seq(1, length(eff.traj), 500)]
-
-# eff.traj <- one.traj
-prob.const <- sum(exp(-weights[eff.traj - s.min + 1])) / length(eff.traj)
-g <- function(x) (x >= 14) * exp(-weights[x - s.min + 1]) / prob.const
-my.est <- mean(g(eff.traj))
 
 hit.n.run <- function(weights, start.mass, start.score,
                       step = 50000, min.n = 50000, eps = 0.02,
