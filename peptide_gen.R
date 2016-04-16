@@ -52,10 +52,10 @@ one.traj <- mh.weighted(L,
                         s.min = 0, w = weights)
 
 one.traj
-plot(cumsum(one.traj < 10)/1:L, lwd = 3, ty = "l", xlab = "number of simulations", ylab = "Cumulative mean")
+plot(cumsum(one.traj$traj < 10)/1:L, lwd = 3, ty = "l", xlab = "number of simulations", ylab = "Cumulative mean")
 
 burn.in <- 2e+05
-eff.traj <- one.traj[-(1:burn.in)]
+eff.traj <- one.traj$traj[-(1:burn.in)]
 # autocorr.diag(mcmc(one.traj), lags = c(100, 500, 1000))
 eff.traj <- eff.traj[seq(1, length(eff.traj), 500)]
 
