@@ -1,4 +1,4 @@
-setwd("/home/sliplove/Documents/Masters")
+setwd("/home/sliplove/Documents/Masters/github_copy/")
 library(Rcpp)
 library(coda)
 library(lattice)
@@ -9,9 +9,9 @@ MAX_SCORE = 14
 MASS_PROTON = 1.00728
 TOTAL_MASS =  1007.65
 
-mat <- as.matrix(read.table("matrix"))
-rule <- as.matrix(read.table("rule_graph"))
-
+mat <- as.matrix(read.table("../tables/matrix"))
+rule <- as.matrix(read.table("../tables/rule_graph"))
+sf <-read.table("../tables/exp_spector")
 max.W = TOTAL_MASS
 
 surfactin <- c(296.089,  324.153,  327.999,  338.181,  341.846,  359.415,  366.881,
@@ -27,10 +27,10 @@ surfactin <- c(296.089,  324.153,  327.999,  338.181,  341.846,  359.415,  366.8
 surfactin <- sort(surfactin)
 
 modify.mass <- function(mass)
-  update_mass(mass, rule)
+  update_mass(mass, rule, FALSE)
 
 get.score <- function(mass)
-  score_peak(surfactin, mat %*% mass)
+  score_peak(surfactin, mat %*% mass, TOTAL_MASS, MASS_PROTON, FALSE)
 
 source("wl.R")
 source("mh.R")
@@ -40,11 +40,8 @@ source("se.R")
 #test if everything is correct
 weights <- wl(0, MAX_SCORE)
 
-start.mass <- sample.int(max.W, 8, replace = TRUE)
-start.mass <- start.mass*TOTAL_MASS/sum(start.mass)
-start.score <- get.score(start.mass)
+SCORE_ <- 14
 s.min <- 0
-
 hit.n.run <- function(weights, start.mass, start.score,
                       step = 50000, min.n = 50000, eps = 0.02,
                       level = 0.95, tracelevel = 1) {
@@ -56,10 +53,10 @@ hit.n.run <- function(weights, start.mass, start.score,
 
   sigma <- list()
   w <- 0
+  prob.const <- sum(exp(-weights[one.traj - s.min + 1])) / length(one.traj)
   repeat {
-    prob.const <- sum(exp(-weights[one.traj - s.min + 1])) / length(one.traj)
-    g <- function(x) (x >= 14) * exp(-weights[x - s.min + 1]) / prob.const
-
+    g <- function(x) (x >= SCORE_) * exp(-weights[x - s.min + 1]) / prob.const
+    
     sigma <- se.obm(one.traj, g)
     w <- 2*z*sigma$se.mean
 
@@ -80,12 +77,19 @@ hit.n.run <- function(weights, start.mass, start.score,
   list(traj = one.traj, mu = sigma$mu, se = sigma$se.mean, lower = sigma$mu - w/2, upper = sigma$mu + w/2)
 }
 
-oo <- hit.n.run(weights = weights, start.mass = start.mass, start.score = start.score)
+generate.est <- function() {
+  start.mass <- sample.int(max.W, 8, replace = TRUE)
+  start.mass <- start.mass*TOTAL_MASS/sum(start.mass)
+  start.score <- get.score(start.mass)
+  start.score
+  s.min <- 0
+  res <- hit.n.run(weights = weights, start.mass = start.mass, start.score = start.score)
+  return(res)
+}
+vec <- replicate(100, generate.est(), simplify = FALSE)
 
-print(my.est)
-s.min
 #==========Standard MC=================
-pval.est <- function(N, score.1 = 10, trace = TRUE) {
+pval.est <- function(N, score.1 = 14, trace = TRUE) {
   v <- numeric(N)
   for (i in 1:N) {
     tmp <- sample.int(max.W, 8, replace = TRUE)
@@ -97,8 +101,9 @@ pval.est <- function(N, score.1 = 10, trace = TRUE) {
       }
     }
   }
-  return((length(v[v >= score.1]))/N)
+  v
+  #return((length(v[v >= score.1]))/N)
 }
 
-N <- 100000
-pval.est(N)
+N <- 1000000
+v <- pval.est(N)
