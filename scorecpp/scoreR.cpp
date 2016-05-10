@@ -6,25 +6,24 @@
 #include <algorithm>
 #include <iostream>
 using namespace Rcpp;
-
-
-const double nlp_mass = 1007.65;
-const double MASS_PROTON = 1.00728;
-const bool keep_both = false;
-
 // [[Rcpp::plugins(cpp11)]]
 
 
 // [[Rcpp::export]]
-DoubleVector update_mass(DoubleVector peak_masses, IntegerMatrix rule) {
-  int id = floor(unif_rand() * rule.nrow());
+DoubleVector update_mass(DoubleVector peak_masses, IntegerMatrix rule, bool int_flag) {
 
+  int id = floor(unif_rand() * rule.nrow());
   int beg = rule(id, 0);
   int end = rule(id, 1);
 
   double beg_mass = peak_masses[beg], end_mass = peak_masses[end];
-  double delta = R::runif(-beg_mass, end_mass);
-
+  double delta;
+  if(int_flag) {
+  	delta = rand() % int(beg_mass + end_mass) - beg_mass;
+  	//std::cout << beg_mass << " " << end_mass << " " << delta << std::endl	; 
+  } else {
+	delta = R::runif(-beg_mass, end_mass);
+  }
   DoubleVector res = clone(peak_masses);
   
   res[beg] = beg_mass + delta;
@@ -35,7 +34,7 @@ DoubleVector update_mass(DoubleVector peak_masses, IntegerMatrix rule) {
 
 
 // [[Rcpp::export]]
-double score_peak(DoubleVector spectrum, DoubleVector peak_masses) {
+double score_peak(DoubleVector spectrum, DoubleVector peak_masses, double nlp_mass, double MASS_PROTON, bool keep_both) {
   std::sort(peak_masses.begin(), peak_masses.end(), [](double a, double b) { return a < b; });
 
   double score = 0;
