@@ -2,7 +2,9 @@ setwd("/home/sliplove/Documents/Masters/github_copy/")
 library(Rcpp)
 library(coda)
 library(lattice)
+library(gtools)
 sourceCpp("scorecpp/scoreR.cpp")
+source("RandVec.R")
 set.seed(42)
 
 MAX_SCORE = 14
@@ -26,8 +28,9 @@ surfactin <- c(296.089,  324.153,  327.999,  338.181,  341.846,  359.415,  366.8
                989.367)
 surfactin <- sort(surfactin)
 
-modify.mass <- function(mass)
+modify.mass <- function(mass) {
   update_mass(mass, rule, FALSE)
+}
 
 get.score <- function(mass)
   score_peak(surfactin, mat %*% mass, TOTAL_MASS, MASS_PROTON, FALSE)
@@ -35,13 +38,14 @@ get.score <- function(mass)
 source("wl.R")
 source("mh.R")
 source("se.R")
-
-#-----------------------------------------------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------------------------
 #test if everything is correct
+# weights <- log(rep(1/15, 15))
 weights <- wl(0, MAX_SCORE)
 
 SCORE_ <- 14
 s.min <- 0
+
 hit.n.run <- function(weights, start.mass, start.score,
                       step = 50000, min.n = 50000, eps = 0.02,
                       level = 0.95, tracelevel = 1) {
@@ -77,33 +81,28 @@ hit.n.run <- function(weights, start.mass, start.score,
   list(traj = one.traj, mu = sigma$mu, se = sigma$se.mean, lower = sigma$mu - w/2, upper = sigma$mu + w/2)
 }
 
-generate.est <- function() {
-  start.mass <- sample.int(max.W, 8, replace = TRUE)
-  start.mass <- start.mass*TOTAL_MASS/sum(start.mass)
-  start.score <- get.score(start.mass)
-  start.score
-  s.min <- 0
-  res <- hit.n.run(weights = weights, start.mass = start.mass, start.score = start.score)
-  return(res)
-}
-vec <- replicate(100, generate.est(), simplify = FALSE)
+start.mass <- as.numeric(rdirichlet(1, rep(1, 8)))*TOTAL_MASS
+start.score <- get.score(start.mass)
+start.score
+
+res.est.unif <- hit.n.run(weights, start.mass = start.mass, start.score = start.score)
+
+tr <- res.est.unif$traj
+res.est.unif
+plot(cumsum(tr < 10)/1:length(tr), type = 'l', lwd = 2)
+tr <- tr[200000:length(tr)]
+plot(ecdf(tr))
 
 #==========Standard MC=================
 pval.est <- function(N, score.1 = 14, trace = TRUE) {
-  v <- numeric(N)
-  for (i in 1:N) {
-    tmp <- sample.int(max.W, 8, replace = TRUE)
-    tmp.mass <- (tmp/sum(tmp)*TOTAL_MASS)
-    v[i] <- get.score(tmp.mass)
-    if (i %% 1000 == 0) {
-      if (trace) {
-        cat(sprintf("iteration %d\n", i))
-      }
-    }
-  }
-  v
-  #return((length(v[v >= score.1]))/N)
+  res <- rdirichlet(10000000, rep(1, 8))
+  v <- apply(res, 1, function(x) get.score(x*TOTAL_MASS))
+  get.score(res[1,]*TOTAL_MASS)
 }
 
-N <- 1000000
+
+N <- 10000000
 v <- pval.est(N)
+est <- length(v[v >= 14])/N
+est + 1.96*sqrt(est*(1-est)/N)
+est - 1.96*sqrt(est*(1-est)/N)

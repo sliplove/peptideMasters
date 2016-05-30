@@ -9,10 +9,8 @@ wl.step <- function(s.min, s.max, phi,
     w[score - s.min + 1]
   }
 
-  # FIXME
-  tmp <- sample.int(TOTAL_MASS, 8, replace = TRUE)
-  start.mass <- (tmp/sum(tmp)*TOTAL_MASS)
-  # start.mass <- diff(c(0, sort(randperm(TOTAL_MASS - 1, sz - 1)), TOTAL_MASS))
+  # FIXME)
+  start.mass <- as.numeric(rdirichlet(1, rep(1, 8))*TOTAL_MASS)
   start.score <- get.score(start.mass)
 
   start.score <- min(start.score, MAX_SCORE)

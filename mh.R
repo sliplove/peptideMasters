@@ -16,21 +16,6 @@ mh.update <- function(mass, score, lweight.spector) {
   list(mass = mass, score = score)
 }
 
-mh.usual <- function(N, start.mass, start.score) {
-  i <- 1
-  v <- numeric(N)
-  l <- list(mass = start.mass, score = start.score)
-  while (i <= N) {
-    l <- do.call(mh.update, c(l, weight.spector))
-    l$score <- min(l$score, MAX_SCORE)
-    
-    v[i] <- l$score
-    i <- i + 1
-  }
-  
-  c(list(traj = v), l)
-}
-
 mh.weighted <- function(N, w, start.mass, start.score, s.min, trace = TRUE) {
   weight.w <- function(score) { 
     w[score - s.min + 1]}
@@ -43,6 +28,7 @@ mh.weighted <- function(N, w, start.mass, start.score, s.min, trace = TRUE) {
     l$score <- min(l$score, MAX_SCORE)
 
     v[i] <- l$score
+    # v[i] <- l$mass[1]
     i <- i + 1
     if (i %% 10000 == 0) {
       if (trace) {
