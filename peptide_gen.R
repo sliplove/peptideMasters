@@ -1,49 +1,36 @@
-setwd("/home/sliplove/Documents/Masters/github_copy/")
+setwd("/home/sliplove/Documents/Masters/gitcop/")
 library(Rcpp)
 library(coda)
 library(lattice)
 library(gtools)
 sourceCpp("scorecpp/scoreR.cpp")
-source("RandVec.R")
 set.seed(42)
 
-MAX_SCORE = 14
+mat <- as.matrix(read.table("./tables/matrix_2488.txt"))
+rule <- as.matrix(read.table("./tables/rule_2488.txt"))
+exp_spectrum <- as.numeric(read.table("./tables/spectrum_2488.txt"))
+
+MAX_SCORE = 24
 MASS_PROTON = 1.00728
-TOTAL_MASS =  1007.65
+N_MASS = ncol(mat)
+TOTAL_MASS = sum(exp_spectrum)
 
-mat <- as.matrix(read.table("../tables/matrix"))
-rule <- as.matrix(read.table("../tables/rule_graph"))
-sf <-read.table("../tables/exp_spector")
-max.W = TOTAL_MASS
+exp_spectrum <- sort(exp_spectrum)
 
-surfactin <- c(296.089,  324.153,  327.999,  338.181,  341.846,  359.415,  366.881,
-               372.44,   386.08,   395.07,   423.098,  433.021,  437.202,  441.282,
-               455.124,  462.093,  464.852,  481.362,  483.64,   508.513,  533.283,
-               536.238,  540.697,  549.837,  554.36,   568.234,  569.96,   581.238,
-               596.306,  616.903,  631.247,  637.379,  649.104,  667.163,  681.25,
-               685.378,  686.424,  698.233,  722.808,  735.46,  746.496,  751.526,
-               752.401,  764.41,   780.184,  782.373,  816.009,  820.065,  827.28,
-               842.327,  847.555,  848.771,  849.451,  877.359,  893.387,  895.455,
-               909.388,  913.777,  933.373,  939.125,  951.488,  959.293,  988.316,
-               989.367)
-surfactin <- sort(surfactin)
-
-modify.mass <- function(mass) {
+modify.mass <- function(mass)
   update_mass(mass, rule, FALSE)
-}
+
 
 get.score <- function(mass)
-  score_peak(surfactin, mat %*% mass, TOTAL_MASS, MASS_PROTON, FALSE)
+  score_peak(exp_spectrum, mat %*% mass, TOTAL_MASS, MASS_PROTON, FALSE)
 
 source("wl.R")
 source("mh.R")
 source("se.R")
-#--------------------------------------------------------------------------------------------------
-#test if everything is correct
-# weights <- log(rep(1/15, 15))
+#----------------------------------------------
 weights <- wl(0, MAX_SCORE)
 
-SCORE_ <- 14
+SCORE_ <- 24
 s.min <- 0
 
 hit.n.run <- function(weights, start.mass, start.score,
@@ -81,28 +68,26 @@ hit.n.run <- function(weights, start.mass, start.score,
   list(traj = one.traj, mu = sigma$mu, se = sigma$se.mean, lower = sigma$mu - w/2, upper = sigma$mu + w/2)
 }
 
-start.mass <- as.numeric(rdirichlet(1, rep(1, 8)))*TOTAL_MASS
+start.mass <- as.numeric(rdirichlet(1, rep(1, N_MASS)))*TOTAL_MASS
 start.score <- get.score(start.mass)
 start.score
 
+
 res.est.unif <- hit.n.run(weights, start.mass = start.mass, start.score = start.score)
-
+length(res.est.unif$traj)
 tr <- res.est.unif$traj
-res.est.unif
-plot(cumsum(tr < 10)/1:length(tr), type = 'l', lwd = 2)
-tr <- tr[200000:length(tr)]
-plot(ecdf(tr))
+res.est.unif$traj
 
-#==========Standard MC=================
+#------------------Standard MC----------------
 pval.est <- function(N, score.1 = 14, trace = TRUE) {
-  res <- rdirichlet(10000000, rep(1, 8))
+  res <- rdirichlet(N, rep(1, N_MASS))
   v <- apply(res, 1, function(x) get.score(x*TOTAL_MASS))
-  get.score(res[1,]*TOTAL_MASS)
+  v
 }
 
-
-N <- 10000000
+N <- length(res.est.unif$traj) 
 v <- pval.est(N)
-est <- length(v[v >= 14])/N
-est + 1.96*sqrt(est*(1-est)/N)
-est - 1.96*sqrt(est*(1-est)/N)
+est <- length(v[v >= SCORE_])/N
+est + 1.96*sqrt(est*(1 - est)/N)
+est - 1.96*sqrt(est*(1 - est)/N)
+

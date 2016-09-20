@@ -9,8 +9,8 @@ wl.step <- function(s.min, s.max, phi,
     w[score - s.min + 1]
   }
 
-  # FIXME)
-  start.mass <- as.numeric(rdirichlet(1, rep(1, 8))*TOTAL_MASS)
+  # FIXME
+  start.mass <- as.numeric(rdirichlet(1, rep(1, N_MASS))*TOTAL_MASS)
   start.score <- get.score(start.mass)
 
   start.score <- min(start.score, MAX_SCORE)
@@ -30,11 +30,9 @@ wl.step <- function(s.min, s.max, phi,
         print(w)
         print(h)
       }
-#       if (all(h[c(FALSE, TRUE)] > 0.6 * mean(h[c(FALSE, TRUE)])) && all(h[c(FALSE, TRUE)] > 20)) {
-#         break
       if (all(h > 0.6 * mean(h)) && all(h > 20)) {
         break
-          
+
       }
     }
     i <- i + 1
@@ -49,12 +47,12 @@ wl <- function(s.min, s.max,
   phi <- phi.start
   if (trace) cat(sprintf("wl step: phi=%f\n", phi))
   ll <- wl.step(s.min, s.max, phi, thr = thr, trace = trace)  
-  # ll$w[c(FALSE, TRUE)] <- ll$w[c(FALSE, TRUE)] - max(ll$w[c(FALSE, TRUE)])   
+  ll$w <- ll$w - max(ll$w)   
   while (phi > phi.end) {
     phi <- sqrt(phi)
     if (trace) cat(sprintf("wl step: phi=%f\n", phi))
     ll <- wl.step(s.min, s.max, phi, thr = thr, ll$w, trace = trace)
-    # ll$w[c(FALSE, TRUE)] <- ll$w[c(FALSE, TRUE)] - max(ll$w[c(FALSE, TRUE)])   
+    ll$w <- ll$w - max(ll$w)   
     print(ll$w)
   }
   ll$w
