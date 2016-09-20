@@ -30,7 +30,6 @@ source("se.R")
 #----------------------------------------------
 weights <- wl(0, MAX_SCORE)
 
-SCORE_ <- 24
 s.min <- 0
 
 hit.n.run <- function(weights, start.mass, start.score,
@@ -46,7 +45,7 @@ hit.n.run <- function(weights, start.mass, start.score,
   w <- 0
   prob.const <- sum(exp(-weights[one.traj - s.min + 1])) / length(one.traj)
   repeat {
-    g <- function(x) (x >= SCORE_) * exp(-weights[x - s.min + 1]) / prob.const
+    g <- function(x) (x >= MAX_SCORE) * exp(-weights[x - s.min + 1]) / prob.const
     
     sigma <- se.obm(one.traj, g)
     w <- 2*z*sigma$se.mean
@@ -87,7 +86,7 @@ pval.est <- function(N, score.1 = 14, trace = TRUE) {
 
 N <- length(res.est.unif$traj) 
 v <- pval.est(N)
-est <- length(v[v >= SCORE_])/N
+est <- length(v[v >= MAX_SCORE])/N
 est + 1.96*sqrt(est*(1 - est)/N)
 est - 1.96*sqrt(est*(1 - est)/N)
 
