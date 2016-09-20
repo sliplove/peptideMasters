@@ -6,14 +6,20 @@ library(gtools)
 sourceCpp("scorecpp/scoreR.cpp")
 set.seed(42)
 
-mat <- as.matrix(read.table("./tables/matrix_2488.txt"))
-rule <- as.matrix(read.table("./tables/rule_2488.txt"))
-exp_spectrum <- as.numeric(read.table("./tables/spectrum_2488.txt"))
+all.matches = read.table("all_matches.tsv", skip = 1)
+all.matches.mass = subset(all_matches, select = c(V2, V5,  V8))
+names(all.matches.mass) = c('id', 'maxscore', 'spectrummass')
 
-MAX_SCORE = 24
+id <- all.matches.mass$id[5]
+
+mat <- as.matrix(read.table(paste0("./tables/matrix_", id, ".txt")))
+rule <- as.matrix(read.table(paste0("./tables/rule_", id, ".txt")))
+exp_spectrum <- as.numeric(read.table(paste0("./tables/spectrum_", id, ".txt")))
+
 MASS_PROTON = 1.00728
 N_MASS = ncol(mat)
-TOTAL_MASS = sum(exp_spectrum)
+TOTAL_MASS = all.matches.mass$spectrummass[all.matches.mass$id == id]
+MAX_SCORE = all.matches.mass$maxscore[all.matches.mass$id == id]
 
 exp_spectrum <- sort(exp_spectrum)
 
@@ -86,7 +92,7 @@ pval.est <- function(N, score.1 = 14, trace = TRUE) {
 
 N <- length(res.est.unif$traj) 
 v <- pval.est(N)
-est <- length(v[v >= MAX_SCORE])/N
+est <- length(v[v >= SCORE_])/N
 est + 1.96*sqrt(est*(1 - est)/N)
 est - 1.96*sqrt(est*(1 - est)/N)
 
