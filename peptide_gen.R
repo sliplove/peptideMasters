@@ -7,7 +7,7 @@ sourceCpp("scorecpp/scoreR.cpp")
 set.seed(42)
 
 all.matches = read.table("all_matches.tsv", head = TRUE)
-id <- all.matches$LocalSpecIdx[5]
+id <- all.matches$LocalSpecIdx[2]
 
 mat <- as.matrix(read.table(paste0("./tables/matrix_", id, ".txt")))
 rule <- as.matrix(read.table(paste0("./tables/rule_", id, ".txt")))
@@ -34,6 +34,16 @@ source("se.R")
 weights <- wl(0, MAX_SCORE)
 
 s.min <- 0
+
+repeat {
+  start.mass <- as.numeric(rdirichlet(1, rep(1, N_MASS)))*TOTAL_MASS
+  start.score <- get.score(start.mass)
+    if (start.score > MAX_SCORE - 5) 
+            break
+  }
+ 
+start.score 
+start.mass
 
 hit.n.run <- function(weights, start.mass, start.score,
                       step = 50000, min.n = 500000, eps = 0.02,
@@ -70,15 +80,16 @@ hit.n.run <- function(weights, start.mass, start.score,
   list(traj = one.traj, mu = sigma$mu, se = sigma$se.mean, lower = sigma$mu - w/2, upper = sigma$mu + w/2)
 }
 
-start.mass <- as.numeric(rdirichlet(1, rep(1, N_MASS)))*TOTAL_MASS
-start.score <- get.score(start.mass)
-start.score
-
 
 res.est.unif <- hit.n.run(weights, start.mass = start.mass, start.score = start.score)
 length(res.est.unif$traj)
 tr <- res.est.unif$traj
-res.est.unif$traj
+res.est.unif$mu
+
+table(tr)
+plot(hist(tr))
+plot(weights, type = 'l')
+
 
 #------------------Standard MC----------------
 pval.est <- function(N, trace = TRUE) {
@@ -88,8 +99,10 @@ pval.est <- function(N, trace = TRUE) {
 }
 
 N <- length(res.est.unif$traj) 
-v <- pval.est(N)
+v <- pval.est(N*10)
+                                                                                                                    table(v)
+table(v)
+
 est <- length(v[v >= MAX_SCORE])/N
 est + 1.96*sqrt(est*(1 - est)/N)
 est - 1.96*sqrt(est*(1 - est)/N)
-
