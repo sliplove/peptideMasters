@@ -6,11 +6,8 @@ library(gtools)
 sourceCpp("scorecpp/scoreR.cpp")
 set.seed(42)
 
-all.matches = read.table("all_matches.tsv", skip = 1)
-all.matches.mass = subset(all_matches, select = c(V2, V5,  V8))
-names(all.matches.mass) = c('id', 'maxscore', 'spectrummass')
-
-id <- all.matches.mass$id[5]
+all.matches = read.table("all_matches.tsv", head = TRUE)
+id <- all.matches$LocalSpecIdx[5]
 
 mat <- as.matrix(read.table(paste0("./tables/matrix_", id, ".txt")))
 rule <- as.matrix(read.table(paste0("./tables/rule_", id, ".txt")))
@@ -18,8 +15,8 @@ exp_spectrum <- as.numeric(read.table(paste0("./tables/spectrum_", id, ".txt")))
 
 MASS_PROTON = 1.00728
 N_MASS = ncol(mat)
-TOTAL_MASS = all.matches.mass$spectrummass[all.matches.mass$id == id]
-MAX_SCORE = all.matches.mass$maxscore[all.matches.mass$id == id]
+TOTAL_MASS = all.matches$SpectrumMass[all.matches$LocalSpecIdx == id]
+MAX_SCORE = all.matches$Score[all.matches$LocalSpecIdx== id]
 
 exp_spectrum <- sort(exp_spectrum)
 
@@ -39,7 +36,7 @@ weights <- wl(0, MAX_SCORE)
 s.min <- 0
 
 hit.n.run <- function(weights, start.mass, start.score,
-                      step = 50000, min.n = 50000, eps = 0.02,
+                      step = 50000, min.n = 500000, eps = 0.02,
                       level = 0.95, tracelevel = 1) {
   z <- qnorm((1 + level) / 2)
   mh.res <- mh.weighted(min.n,
@@ -84,7 +81,7 @@ tr <- res.est.unif$traj
 res.est.unif$traj
 
 #------------------Standard MC----------------
-pval.est <- function(N, score.1 = 14, trace = TRUE) {
+pval.est <- function(N, trace = TRUE) {
   res <- rdirichlet(N, rep(1, N_MASS))
   v <- apply(res, 1, function(x) get.score(x*TOTAL_MASS))
   v
@@ -92,7 +89,7 @@ pval.est <- function(N, score.1 = 14, trace = TRUE) {
 
 N <- length(res.est.unif$traj) 
 v <- pval.est(N)
-est <- length(v[v >= SCORE_])/N
+est <- length(v[v >= MAX_SCORE])/N
 est + 1.96*sqrt(est*(1 - est)/N)
 est - 1.96*sqrt(est*(1 - est)/N)
 

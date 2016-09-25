@@ -38,7 +38,7 @@ double score_peak(DoubleVector spectrum, DoubleVector peak_masses, double nlp_ma
   std::sort(peak_masses.begin(), peak_masses.end(), [](double a, double b) { return a < b; });
 
   double score = 0;
-  double product_ion_thresh = 0.5;
+  double product_ion_thresh = 0.02;
   auto pmb = peak_masses.begin();
   auto pme = std::reverse_iterator<decltype(peak_masses.end())>(peak_masses.end());
   auto rpme = std::reverse_iterator<decltype(peak_masses.begin())>(peak_masses.begin());
