@@ -1,4 +1,4 @@
-setwd("/home/sliplove/Documents/Masters/gitcop/")
+setwd("/home/sliplove/Documents/Masters/peptidegit/peptideMasters/")
 library(Rcpp)
 library(coda)
 library(lattice)
@@ -7,7 +7,7 @@ sourceCpp("scorecpp/scoreR.cpp")
 set.seed(42)
 
 all.matches = read.table("all_matches.tsv", head = TRUE)
-id <- all.matches$LocalSpecIdx[2]
+id <- all.matches$LocalSpecIdx[3]
 
 mat <- as.matrix(read.table(paste0("./tables/matrix_", id, ".txt")))
 rule <- as.matrix(read.table(paste0("./tables/rule_", id, ".txt")))
