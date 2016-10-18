@@ -21,7 +21,7 @@ private:
     std::vector<std::vector<double>> mat_;
     double peptide_mass_;
     std::vector<double> spectrum_;
-    double score_;
+    // double score_;
 
 public:
     Peptide() {};
@@ -33,10 +33,10 @@ public:
                 rule_(peptide.rule_),
                 mat_(peptide.mat_),
                 spectrum_(peptide.spectrum_),
-                peptide_mass_(peptide.peptide_mass_),
-                score_(peptide.score_) { }
+                peptide_mass_(peptide.peptide_mass_)
+                {}
 	
-    double get_score() { return score_; }
+    // double get_score() { return score_; }
     void set_spectrum(const std::vector<double> & );
     std::vector<double> get_spectrum_() {return spectrum_; }
 	void print();

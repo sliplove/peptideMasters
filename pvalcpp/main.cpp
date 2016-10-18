@@ -11,7 +11,7 @@
 
 #include "peptide.h"
 #include "wl.h"
-#include "main_functions.h"
+#include "metropolis.h"
 #include "unif.h"
 
 
@@ -86,9 +86,10 @@ int main(int argc, char const *argv[])
 	std::cout << std::endl << std::endl;
 
 	// mh step
-	std::vector<double> start_mass = get_start_mass(ncol, NLP_MASS);
+	Metropolis run(exp_spectrum, mat, rule, NLP_MASS, wl);
 
-    hit_run(exp_spectrum, mat, rule, start_mass, NLP_MASS,  wl, 50000 , 500000, 0.02, 0.95);
+	std::vector<double> start_mass = get_start_mass(ncol, NLP_MASS);
+    run.hit_run(start_mass, 50000 , 500000, 0.02, 0.95);
 
 	return 0;
 }

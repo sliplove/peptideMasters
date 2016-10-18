@@ -87,9 +87,6 @@ void Peptide::print() {
         std::cout << entry << " "; 
         std::cout <<  std::endl;
 
-    std::cout << std::endl; 
-    std::cout << "Score of peptide: " <<  score_ << std::endl;
-
 
 }
 
