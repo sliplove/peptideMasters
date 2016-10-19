@@ -6,38 +6,26 @@ void WLsimulator::wl_step(const std::vector<double> exp_spectrum,
 					const std::vector<std::vector<double>> &mat,
                       const std::vector<std::pair<unsigned, unsigned>> &rule,
                       std::vector<double> mass, double peptide_mass, double phi, bool trace) {
-		Peptide peptide(mat, rule, mass, peptide_mass);
-		std::vector<double> nmass = update_mass_single_(mass, rule);		
-		Peptide npeptide(mat, rule, nmass, peptide_mass);
+		Peptide peptide(mat, rule, mass, peptide_mass);		
+		Peptide npeptide(mat, rule, mass, peptide_mass);
+
+		std::vector<double> nmass;
 
 		Psm psm, npsm;
-		// std::cout << "mass: " << std::endl;
-
-  //   	for (auto & entry : mass) 
-  //       	std::cout << entry << " "; 
-  //       std::cout <<  std::endl;
-
-		// std::cout << "nmass: " << std::endl;
-
-  //   	for (auto & entry : nmass) 
-  //       	std::cout << entry << " "; 
-  //       std::cout <<  std::endl;
 
 		double lphi =  log(phi);
 		double alpha, sscore;
 		int i = 0, idx;
-		// std::cout << "============== WL RUN ====================" << std::endl;
-		// std::cout << std::endl;
 		
 		for (auto & h : hist) { h = 0; }
-		// peptide.print();
 		
 		do {
-			nmass = update_mass_single_(mass, rule);
-			peptide.set_spectrum(mass);
-			npeptide.set_spectrum(nmass);
-			psm.score_peak(exp_spectrum, peptide.get_spectrum_(), false);
-			npsm.score_peak(exp_spectrum, npeptide.get_spectrum_(), false);
+			npeptide.clear(mass);
+			// Peptide npeptide(mat, rule, mass, peptide_mass);
+			nmass = update_spectrum_by_new_mass(mass, rule, npeptide);
+
+			psm.score_peak(exp_spectrum, peptide, false);
+			npsm.score_peak(exp_spectrum, npeptide, false);
 			
 			double score_old =  std::min(psm.score_, MAX_SCORE);
 			double score_new =  std::min(npsm.score_, MAX_SCORE);
@@ -52,9 +40,8 @@ void WLsimulator::wl_step(const std::vector<double> exp_spectrum,
 			// std::cout << "alpha = " << alpha << std::endl;
 
 			if (unif_rand() < alpha){
-				peptide = npeptide;
 				mass = nmass;
-				// std::cout << "accepted" << std::endl;
+				peptide.copy_spectrum_(npeptide);
 				sscore = std::min(npsm.score_, MAX_SCORE);
 			} else {
 				sscore = std::min(psm.score_, MAX_SCORE);

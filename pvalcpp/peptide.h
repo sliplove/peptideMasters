@@ -12,16 +12,14 @@
 
 std::vector<double> get_start_mass(unsigned , double);
 
-std::vector<double> update_mass_single_(const std::vector<double> & ,
-            const std::vector<std::pair<unsigned, unsigned>> &);
-
 class Peptide {
 private:
     std::vector<std::pair<unsigned, unsigned>> rule_;
     std::vector<std::vector<double>> mat_;
     double peptide_mass_;
     std::vector<double> spectrum_;
-    // double score_;
+    std::vector<size_t> sorting_permutation_;
+    std::vector<size_t> unmoved_, moved_plus_, moved_minus_;
 
 public:
     Peptide() {};
@@ -33,12 +31,26 @@ public:
                 rule_(peptide.rule_),
                 mat_(peptide.mat_),
                 spectrum_(peptide.spectrum_),
+                sorting_permutation_(peptide.sorting_permutation_),
+                unmoved_(peptide.unmoved_),
+                moved_minus_(peptide.moved_minus_),
                 peptide_mass_(peptide.peptide_mass_)
                 {}
 	
     // double get_score() { return score_; }
-    void set_spectrum(const std::vector<double> & );
-    std::vector<double> get_spectrum_() {return spectrum_; }
+    void copy_spectrum_(const Peptide & );
+    std::vector<double> get_spectrum_() const {
+        return spectrum_; 
+    }
+
+    std::vector<size_t> get_sorting_permutation_() const {
+        return sorting_permutation_; 
+    }
+
 	void print();
+    friend std::vector<double> update_spectrum_by_new_mass(const std::vector<double> & ,
+            const std::vector<std::pair<unsigned, unsigned>> &,
+            Peptide & );
+    void clear(const std::vector<double> &);
 
 };

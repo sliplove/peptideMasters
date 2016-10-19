@@ -1,7 +1,22 @@
 #include "psm.h"
 
 void Psm::score_peak(const std::vector<double> & exp_spectrum_, 
-		const std::vector<double> & spectrum_, bool keep_both) {
+		const Peptide & peptide , bool keep_both) {
+  
+  std::vector<double> spect = peptide.get_spectrum_();
+  std::vector<size_t> sort_perm = peptide.get_sorting_permutation_();
+
+
+  std::vector<double> spectrum_(sort_perm.size());
+
+  for (int i = 0; i < sort_perm.size(); ++i) {
+    spectrum_[i]  = spect[sort_perm[i]];
+    // std::cout << spectrum_[i] << " ";
+  }
+  // std::cout << std::endl;
+
+  // std::vector<double> spectrum_ = peptide.get_spectrum_();
+
   score_ = 0;
 
   auto pmb = spectrum_.begin();
@@ -44,6 +59,6 @@ void Psm::score_peak(const std::vector<double> & exp_spectrum_,
     if (pmb == spectrum_.end() && pme == rpme) {
       break;
     }
-    // score_ = std::min(score_, MAX_SCORE);
+    score_ = std::min(score_, MAX_SCORE);
   }
 }

@@ -7,7 +7,8 @@ const double MIN_SCORE = 0;
 const double MAX_SCORE = 14;
 const double PHI_B = exp(0.6);
 const double PHI_E = exp(0.0003);
-const int STEP_LENGTH = 10000;
+const int STEP_LENGTH = 1000;
+
 
 static double unif_rand() {
     return double(rand()) / RAND_MAX;

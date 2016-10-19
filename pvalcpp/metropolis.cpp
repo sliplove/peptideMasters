@@ -7,17 +7,16 @@ std::vector<double>  Metropolis::mh_weighted (std::vector<double> & mass, int N)
 
 
     Peptide peptide(mat_, rule_, mass, peptide_mass_);
-    std::vector<double> nmass = update_mass_single_(mass, rule_);    
-    Peptide npeptide(mat_, rule_, nmass, peptide_mass_);
-
+    Peptide npeptide(mat_, rule_, mass, peptide_mass_);
+    
+    std::vector<double> nmass;
     Psm psm, npsm;
 
     while (i < N) {
-      nmass = update_mass_single_(mass, rule_);
-      peptide.set_spectrum(mass);
-      npeptide.set_spectrum(nmass);
-      psm.score_peak(exp_spectrum_, peptide.get_spectrum_(), false);
-      npsm.score_peak(exp_spectrum_, npeptide.get_spectrum_(), false);
+      npeptide.clear(mass);
+      nmass = update_spectrum_by_new_mass(mass, rule_, npeptide);
+      psm.score_peak(exp_spectrum_, peptide, false);
+      npsm.score_peak(exp_spectrum_, npeptide, false);
       
       double score_old =  std::min(psm.score_, MAX_SCORE);
       double score_new =  std::min(npsm.score_, MAX_SCORE);
@@ -32,6 +31,7 @@ std::vector<double>  Metropolis::mh_weighted (std::vector<double> & mass, int N)
       // std::cout << "alpha = " << alpha << std::endl;
 
       if (unif_rand() < alpha){
+        peptide.copy_spectrum_(npeptide);
         mass = nmass;
         // std::cout << "accepted" << std::endl;
         sscore = std::min(npsm.score_, MAX_SCORE);
