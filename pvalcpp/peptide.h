@@ -39,10 +39,9 @@ public:
 	
     // double get_score() { return score_; }
     void copy_spectrum_(const Peptide & );
-    std::vector<double> get_spectrum_() const {
-        return spectrum_; 
-    }
-
+    
+    double get_peptide_mass_() const { return peptide_mass_; }
+    std::vector<double> get_spectrum_() const { return spectrum_; }
     std::vector<size_t> get_sorting_permutation_() const {
         return sorting_permutation_; 
     }

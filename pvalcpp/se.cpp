@@ -21,7 +21,7 @@
   // std::cout << "prob_const = " << prob_const << std::endl;
 
   for (int i = 0; i < n; ++i) {
-    elements[i] = (trajectory[i] >= MAX_SCORE)*exp((-1) * wl.get_single_weight(trajectory[i])) / prob_const;
+    elements[i] = (trajectory[i] >=  wl.get_max_score_())*exp((-1) * wl.get_single_weight(trajectory[i])) / prob_const;
     cumsum[i + 1] = cumsum[i] + elements[i];
   }
 

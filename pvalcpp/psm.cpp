@@ -5,6 +5,7 @@ void Psm::score_peak(const std::vector<double> & exp_spectrum_,
   
   std::vector<double> spect = peptide.get_spectrum_();
   std::vector<size_t> sort_perm = peptide.get_sorting_permutation_();
+  double nlp = peptide.get_peptide_mass_();
 
 
   std::vector<double> spectrum_(sort_perm.size());
@@ -44,14 +45,14 @@ void Psm::score_peak(const std::vector<double> & exp_spectrum_,
       continue;
     }
 
-    while (pme != rpme && NLP_MASS - *pme <= thr) {
+    while (pme != rpme && nlp- *pme <= thr) {
       pme++;
     }
 
     if (pme != rpme) {
-      if (std::abs(NLP_MASS - *pme + MASS_PROTON - rp) < PRODUCT_ION_THRESH) {
+      if (std::abs(nlp - *pme + MASS_PROTON - rp) < PRODUCT_ION_THRESH) {
         score_ += 1;
-        // std::cout << nlp_mass - *pme + MASS_PROTON << " " << rp << std::endl;
+        // std::cout << nlp - *pme + MASS_PROTON << " " << rp << std::endl;
         continue;
       }
     }
@@ -59,6 +60,6 @@ void Psm::score_peak(const std::vector<double> & exp_spectrum_,
     if (pmb == spectrum_.end() && pme == rpme) {
       break;
     }
-    score_ = std::min(score_, MAX_SCORE);
+    
   }
 }

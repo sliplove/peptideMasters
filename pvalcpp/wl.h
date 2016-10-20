@@ -1,3 +1,4 @@
+
 #pragma once 
 #include <cmath>
 #include <cstdint>
@@ -29,6 +30,7 @@ public:
 
 	std::vector<double> get_weights() const { return weights; }
 	double get_single_weight(double score) const {return weights[int(score - min_score_)]; }
+	double get_max_score_() const {return max_score_; }
 
 	bool hist_flatness() {
 		double mean_h, sum_h = 0;

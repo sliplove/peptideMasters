@@ -18,8 +18,8 @@ std::vector<double>  Metropolis::mh_weighted (std::vector<double> & mass, int N)
       psm.score_peak(exp_spectrum_, peptide, false);
       npsm.score_peak(exp_spectrum_, npeptide, false);
       
-      double score_old =  std::min(psm.score_, MAX_SCORE);
-      double score_new =  std::min(npsm.score_, MAX_SCORE);
+      double score_old =  std::min(psm.score_, wl_.get_max_score_());
+      double score_new =  std::min(npsm.score_, wl_.get_max_score_());
       
       double w_old =  wl_.get_single_weight(score_old);
       double w_new =  wl_.get_single_weight(score_new);
@@ -34,9 +34,9 @@ std::vector<double>  Metropolis::mh_weighted (std::vector<double> & mass, int N)
         peptide.copy_spectrum_(npeptide);
         mass = nmass;
         // std::cout << "accepted" << std::endl;
-        sscore = std::min(npsm.score_, MAX_SCORE);
+        sscore = std::min(npsm.score_, wl_.get_max_score_());
       } else {
-        sscore = std::min(psm.score_, MAX_SCORE);
+        sscore = std::min(psm.score_,  wl_.get_max_score_());
       }
       v[i] = sscore;        
       i++;
@@ -47,7 +47,7 @@ std::vector<double>  Metropolis::mh_weighted (std::vector<double> & mass, int N)
 
     
 
-void Metropolis::hit_run(std::vector<double> mass, int step, int max_n, double eps_, double level) {
+void Metropolis::hit_run(std::vector<double> mass, int step, double eps_, double level) {
 
     double z = 1.96;
     std::vector<double> trajectory = mh_weighted(mass, step);
@@ -66,7 +66,7 @@ void Metropolis::hit_run(std::vector<double> mass, int step, int max_n, double e
       temp = mh_weighted(mass, step);  
       trajectory.insert(std::end(trajectory), std::begin(temp), std::end(temp));
 
-    } while ((eps > eps_) || (trajectory.size() < max_n) );
+    } while (eps > eps_);
 }
 
 

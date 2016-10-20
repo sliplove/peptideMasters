@@ -27,8 +27,8 @@ void WLsimulator::wl_step(const std::vector<double> exp_spectrum,
 			psm.score_peak(exp_spectrum, peptide, false);
 			npsm.score_peak(exp_spectrum, npeptide, false);
 			
-			double score_old =  std::min(psm.score_, MAX_SCORE);
-			double score_new =  std::min(npsm.score_, MAX_SCORE);
+			double score_old =  std::min(psm.score_, max_score_);
+			double score_new =  std::min(npsm.score_, max_score_);
 			
 			double w_old =  get_single_weight(score_old);
 			double w_new =  get_single_weight(score_new);
@@ -42,9 +42,9 @@ void WLsimulator::wl_step(const std::vector<double> exp_spectrum,
 			if (unif_rand() < alpha){
 				mass = nmass;
 				peptide.copy_spectrum_(npeptide);
-				sscore = std::min(npsm.score_, MAX_SCORE);
+				sscore = std::min(npsm.score_, max_score_);
 			} else {
-				sscore = std::min(psm.score_, MAX_SCORE);
+				sscore = std::min(psm.score_, max_score_);
 			}
 				
 			idx = (int)sscore - min_score_;

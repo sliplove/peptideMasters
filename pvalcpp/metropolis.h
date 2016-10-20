@@ -38,6 +38,6 @@ public:
     {}
 
 	std::vector<double>  mh_weighted (std::vector<double> &, int );
-	void hit_run(std::vector<double> , int , int , double , double );
+	void hit_run(std::vector<double> , int , double , double );
 
 };

@@ -15,17 +15,29 @@
 #include "unif.h"
 
 
-
-int main(int argc, char const *argv[])
+int main(int argc, char *argv[])
 {
 	srand (13);
 
 	// read input files
+
+	std::ifstream file_mat(argv[1]);
+	std::ifstream file_rule(argv[2]);
+	std::ifstream file_spectrum(argv[3]);
+
+	double NLP_MASS = atof(argv[4]);
+	double MIN_SCORE = atoi(argv[5]);
+	double MAX_SCORE = atoi(argv[6]);
+	double PHI_B = atof(argv[7]);
+	double PHI_E = atof(argv[8]);	
+	int STEP_LENGTH = atoi(argv[9]);
+	int MIN_STEPS_RUN = atoi(argv[10]);
+	double EPS = atof(argv[11]);
+	double LEVEL = atof(argv[12]);
+
+
+
 	std::vector<std::vector<double> > mat;
-    std::ifstream file_mat("../input/matrix.txt");
-	std::ifstream file_rule("../input/rule_graph.txt");
-	std::ifstream file_spectrum("../input/spectrum.txt");
-	
 
     double elem;
 	std::string line;
@@ -43,7 +55,7 @@ int main(int argc, char const *argv[])
 	int nrow = mat.size() - 1;
 	int ncol = mat[0].size();
 
-	std::cout << ncol  << " " << nrow << std::endl;
+	// std::cout << ncol  << " " << nrow << std::endl;
 
     std::vector<std::pair<unsigned, unsigned> > rule (ncol);
 	double elem1, elem2;
@@ -71,9 +83,11 @@ int main(int argc, char const *argv[])
 	file_mat.close();
 	file_rule.close();
 	file_spectrum.close();
-	
+	std::cout << MIN_SCORE << MAX_SCORE << PHI_B << PHI_E << STEP_LENGTH;
+
 	// get weights	
 	WLsimulator wl(MIN_SCORE, MAX_SCORE, PHI_B, PHI_E, STEP_LENGTH);
+	wl.print();
 
 	std::vector<double> weights;
 	weights = wl.wl_full(exp_spectrum, mat, rule, NLP_MASS, true);
@@ -89,7 +103,7 @@ int main(int argc, char const *argv[])
 	Metropolis run(exp_spectrum, mat, rule, NLP_MASS, wl);
 
 	std::vector<double> start_mass = get_start_mass(ncol, NLP_MASS);
-    run.hit_run(start_mass, 50000 , 500000, 0.02, 0.95);
+    run.hit_run(start_mass, MIN_STEPS_RUN , EPS, LEVEL);
 
 	return 0;
 }
