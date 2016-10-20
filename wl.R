@@ -1,5 +1,5 @@
 wl.step <- function(s.min, s.max, phi,
-                    thr = 1000, w, trace = TRUE) {
+                    thr = 100000, w, trace = TRUE) {
   h <- numeric(s.max - s.min + 1)
   if (missing(w))
     w <- log(rep(1, length.out = s.max - s.min + 1))

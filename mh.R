@@ -28,7 +28,6 @@ mh.weighted <- function(N, w, start.mass, start.score, s.min, trace = TRUE) {
     l$score <- min(l$score, MAX_SCORE)
 
     v[i] <- l$score
-    # v[i] <- l$mass[1]
     i <- i + 1
     if (i %% 10000 == 0) {
       if (trace) {

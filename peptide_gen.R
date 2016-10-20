@@ -7,7 +7,7 @@ sourceCpp("scorecpp/scoreR.cpp")
 set.seed(42)
 
 all.matches = read.table("all_matches.tsv", head = TRUE)
-id <- all.matches$LocalSpecIdx[3]
+id <- all.matches$LocalSpecIdx[5]
 
 mat <- as.matrix(read.table(paste0("./tables/matrix_", id, ".txt")))
 rule <- as.matrix(read.table(paste0("./tables/rule_", id, ".txt")))
@@ -35,18 +35,13 @@ weights <- wl(0, MAX_SCORE)
 
 s.min <- 0
 
-repeat {
-  start.mass <- as.numeric(rdirichlet(1, rep(1, N_MASS)))*TOTAL_MASS
-  start.score <- get.score(start.mass)
-    if (start.score > MAX_SCORE - 5) 
-            break
-  }
- 
+start.mass <- as.numeric(rdirichlet(1, rep(1, N_MASS)))*TOTAL_MASS
+start.score <- get.score(start.mass)
 start.score 
 start.mass
 
 hit.n.run <- function(weights, start.mass, start.score,
-                      step = 50000, min.n = 500000, eps = 0.02,
+                      step = 50000, min.n = 50000, eps = 0.02,
                       level = 0.95, tracelevel = 1) {
   z <- qnorm((1 + level) / 2)
   mh.res <- mh.weighted(min.n,
@@ -56,16 +51,17 @@ hit.n.run <- function(weights, start.mass, start.score,
 
   sigma <- list()
   w <- 0
-  prob.const <- sum(exp(-weights[one.traj - s.min + 1])) / length(one.traj)
   repeat {
+    prob.const <- sum(exp(-weights[one.traj - s.min + 1])) / length(one.traj)
     g <- function(x) (x >= MAX_SCORE) * exp(-weights[x - s.min + 1]) / prob.const
     
     sigma <- se.obm(one.traj, g)
     w <- 2*z*sigma$se.mean
 
     if (tracelevel > 0)
-      cat(sprintf("length %d, mean: %e, sdev: %e, w: %e, eps: %g, lambda: %e\n",
-                  length(one.traj), sigma$mu, sigma$se.mean, w, w/sqrt(sigma$lambda), sigma$lambda))
+      cat(sprintf("length %d, mean: %e, sdev: %e, w: %e, eps: %g, lambda: %e, prob: %e\n",
+                  length(one.traj), sigma$mu, sigma$se.mean,
+                  w, w/sqrt(sigma$lambda), sigma$lambda, prob.const))
 
     if (w / sqrt(sigma$lambda) < eps)
       break
@@ -81,7 +77,7 @@ hit.n.run <- function(weights, start.mass, start.score,
 }
 
 
-res.est.unif <- hit.n.run(weights, start.mass = start.mass, start.score = start.score)
+res.est.unif <- hit.n.run(weights, start.mass = start.mass, start.score = start.score, min.n = 50000)
 length(res.est.unif$traj)
 tr <- res.est.unif$traj
 res.est.unif$mu
