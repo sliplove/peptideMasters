@@ -1,13 +1,10 @@
 CC=g++
 CFLAGS=-g -c -O2 -std=c++11
 
-
 all: main
-	./main $(matrix) $(rule) $(spectrum) $(nlp) $(min_score) $(max_score) $(phi_begin) $(phi_end) $(nstep_weights) $(min_steps_run) $(eps) $(level)
  
-main: main.o peptide.o wl.o psm.o metropolis.o se.o
-	g++ -g main.o peptide.o wl.o psm.o metropolis.o se.o -o main 
-
+main: main.o peptide.o mhstate.o wl.o psm.o se.o metropolis.o
+	g++ -g main.o peptide.o mhstate.o wl.o psm.o se.o metropolis.o -o main 
 
 .SUFFIXES: .cpp .o
 

@@ -12,47 +12,39 @@
 
 #include "peptide.h"
 #include "unif.h"
+#include "mhstate.h"
 
 class WLsimulator {
 private:
-	std::vector<double> weights;
-	std::vector<int> hist;
-	double min_score_, max_score_, phi_begin_, phi_end_;
+	std::vector<double> weights_;
+	std::vector<int> hist_;
+	double phi_begin_, phi_end_;
 	int thr_;
 
 public:
-	WLsimulator(double min_score, double max_score, double phi_begin, 
-					double phi_end, int thr) : min_score_{min_score}, max_score_{max_score},
-							phi_begin_{phi_begin}, phi_end_{phi_end}, thr_{thr} {
-		weights.resize(int(max_score_ - min_score_ + 1));
-		hist.resize(int(max_score_ - min_score_ + 1));
-		}
+	WLsimulator(double phi_begin,double phi_end, int thr) 
+	:
+	phi_begin_(phi_begin),
+	phi_end_(phi_end),
+	thr_(thr) 
+	{}
 
-	std::vector<double> get_weights() const { return weights; }
-	double get_single_weight(double score) const {return weights[int(score - min_score_)]; }
-	double get_max_score_() const {return max_score_; }
+	std::vector<double> get_weights() const { return weights_; }
 
-	bool hist_flatness() {
+	bool hist_flatness() const {
 		double mean_h, sum_h = 0;
-		for (auto h : hist)
-    		sum_h += h;
-    	mean_h = sum_h/hist.size();
-		for (const auto& h : hist) {
+		for (auto h : hist_)
+			sum_h += h;
+		mean_h = sum_h/hist_.size();
+		for (const auto& h : hist_) {
 			if ((h < 0.6 * mean_h) || (h < 20)) 	
-					return false;
+				return false;
 		}
 		return true;
 	}
 
-	void wl_step(const std::vector<double> , 
-		const std::vector<std::vector<double>> &,
-        const std::vector<std::pair<unsigned, unsigned>> &,
-        std::vector<double> , double , double , bool );
-
-	std::vector<double>  wl_full(const std::vector<double> exp_spectrum,
-	 const std::vector<std::vector<double>> &mat,
-	 const std::vector<std::pair<unsigned, unsigned>> &rule,
-     double peptide_mass,  bool trace);
+	void wl_step(MHstate & mh, double , bool );
+	std::vector<double>  wl_full(MHstate & , bool trace);
 	
 	void print();
 };

@@ -1,141 +1,118 @@
 #include "wl.h"
 #include "psm.h"
 
+void WLsimulator::wl_step(MHstate & mh, double phi, bool trace) {
+	weights_ = mh.get_weights_();
 
-void WLsimulator::wl_step(const std::vector<double> exp_spectrum, 
-					const std::vector<std::vector<double>> &mat,
-                      const std::vector<std::pair<unsigned, unsigned>> &rule,
-                      std::vector<double> mass, double peptide_mass, double phi, bool trace) {
-		Peptide peptide(mat, rule, mass, peptide_mass);		
-		Peptide npeptide(mat, rule, mass, peptide_mass);
+	std::cout << "wl weights" <<  std::endl;
+	for (auto & entry : weights_) {
+		std::cout << entry << " ";
+	}
 
-		std::vector<double> nmass;
-
-		Psm psm, npsm;
+	std::cout << std::endl;
+	hist_.resize(weights_.size());
+	
+	for (auto & h : hist_) { h = 0; }
 
 		double lphi =  log(phi);
-		double alpha, sscore;
-		int i = 0, idx;
+	int i = 0, idx;
+	
+	do {
+		idx = mh.step();
+			// std::cout << "idx = " << idx << std::endl;
+		hist_[idx] = hist_[idx] + 1;
+		weights_[idx] = weights_[idx] - lphi;
+		i++;
 		
-		for (auto & h : hist) { h = 0; }
-		
-		do {
-			npeptide.clear(mass);
-			// Peptide npeptide(mat, rule, mass, peptide_mass);
-			nmass = update_spectrum_by_new_mass(mass, rule, npeptide);
+		mh.set_weights(weights_);
 
-			psm.score_peak(exp_spectrum, peptide, false);
-			npsm.score_peak(exp_spectrum, npeptide, false);
-			
-			double score_old =  std::min(psm.score_, max_score_);
-			double score_new =  std::min(npsm.score_, max_score_);
-			
-			double w_old =  get_single_weight(score_old);
-			double w_new =  get_single_weight(score_new);
+		if (i % 1000 == 0) {
+			if (trace) {
+				std::cout << "iteration " << i << std::endl;
+				for (const auto& w : weights_) {	
+					std::cout << w << " ";
+				}
+				std::cout << std::endl;
 
-			// std::cout << "score_old = " << score_old << " score_new = " << score_new << std::endl;
-			// std::cout << "w_old = " << w_old << " w_new = " << w_new << std::endl;
+				for (const auto& h : hist_) {
+					std::cout << h << " ";
+				}
 
-			alpha = std::min(1.0, exp(w_new - w_old));	
-			// std::cout << "alpha = " << alpha << std::endl;
+				std::cout << std::endl;
+			}		
+		}
 
-			if (unif_rand() < alpha){
-				mass = nmass;
-				peptide.copy_spectrum_(npeptide);
-				sscore = std::min(npsm.score_, max_score_);
-			} else {
-				sscore = std::min(psm.score_, max_score_);
-			}
-				
-			idx = (int)sscore - min_score_;
+	} while (!hist_flatness() && (i < thr_)) ;
 
-    		hist[idx] = hist[idx] + 1;
-    		weights[idx] = weights[idx] - lphi;
-    		i++;
-
-			// print stuff 
-	    	if (i % 1000 == 0) {
-	    		if (trace) {
-	    			std::cout << "iteration " << i << std::endl;
-	    			for (const auto& w : weights) {	
-	    				std::cout << w << " ";
-	    			}
-	    			std::cout << std::endl;
-
-	    			for (const auto& h : hist) {
-	    				std::cout << h << " ";
-	    			}
-
-	    			std::cout << std::endl;
-	    		}		
-	     	}
-		} while (!hist_flatness() && (i < thr_)) ;
 }
 
-std::vector<double>  WLsimulator::wl_full (const std::vector<double> exp_spectrum,
-	 const std::vector<std::vector<double>> &mat,
-	 const std::vector<std::pair<unsigned, unsigned>> &rule,
-                      double peptide_mass,  bool trace) {
-
-	int nrow = mat.size() - 1;
-    int ncol = mat[0].size();
-
+std::vector<double>  WLsimulator::wl_full(MHstate & mh, bool trace) {
 	double phi = phi_begin_;
 	if (trace) 
 		std::cout << "wl step: phi = " << phi << std::endl;
 	
+	mh.print_current_state_();
+	mh.drop_current_state_();
+	std::cout << "drop current state" << std::endl; 
+	mh.print_current_state_();
+	wl_step(mh, phi, true);
+	std::cout << "mh weights_" << std::endl; 
+	mh.print_weights_();
 	
-	std::vector<double> st = get_start_mass(ncol, peptide_mass);
-	// peptide.print();
-	wl_step(exp_spectrum, mat, rule, st, peptide_mass, phi, true);
+	for (auto & entry : weights_) {
+		std::cout << entry;
+	}
+	std::cout << std::endl;
 
-	auto maxw =  std::max_element(std::begin(weights), std::end(weights));
 
-	for (int i = 0; i < weights.size(); ++i) {
-		weights[i] -= *maxw;
+	auto maxw =  std::max_element(weights_.begin(), weights_.end());
+
+	for (int i = 0; i < weights_.size(); ++i) {
+		weights_[i] -= *maxw;
 	}
 	std::cout << std::endl;
 
 	while(phi > phi_end_) {
-  		phi = sqrt(phi);
+		phi = sqrt(phi);
   		// std::cout << "phi = " << phi << std::endl;
-  		std::vector<double> st = get_start_mass(ncol, peptide_mass);
-		wl_step(exp_spectrum, mat, rule, st, peptide_mass, phi, true);
+		mh.drop_current_state_();
+  		// mh.print_current_state_(	);
+		mh.print_weights_();
+		wl_step(mh, phi, true);
 
-  		auto maxw =  std::max_element(weights.begin(), weights.end());
 
-		for (int i = 0; i < weights.size(); ++i) {
-			weights[i] -= *maxw;
+		auto maxw =  std::max_element(weights_.begin(), weights_.end());
+
+		for (int i = 0; i < weights_.size(); ++i) {
+			weights_[i] -= *maxw;
 		}
 		std::cout << std::endl;
 
 	}
 
-	return weights;
+	return weights_;
 }
 
 void WLsimulator::print() {
 	std::cout << std::endl; 
 	std::cout << "------- Wang-Landau parameters -----------";
-    std::cout << std::endl; 
-	    std::cout << "Min score: " <<  min_score_ << std::endl << "Max score: " <<  max_score_<< std::endl;
-	    std::cout << "Initial phi value: " << phi_begin_ << std::endl << "Сrowning phi value:" << phi_end_ << std::endl;
-	    std::cout << "Number of iterations in wl step: " << thr_ << std::endl;
+	std::cout << std::endl; 
+	std::cout << "Initial phi value: " << phi_begin_ << std::endl << "Сrowning phi value:" << phi_end_ << std::endl;
+	std::cout << "Number of iterations in wl step: " << thr_ << std::endl;
 
-		std::cout << std::endl; 
-	    std::cout << "Weights: " << std::endl;
+	std::cout << std::endl; 
+	std::cout << "Weights: " << std::endl;
 
-	    for (auto & entry : weights) 
-	        std::cout << entry << " "; 
-	        std::cout <<  std::endl;
+	for (auto & entry : weights_) 
+		std::cout << entry << " "; 
+	std::cout <<  std::endl;
 
-	    std::cout << std::endl; 
-	    std::cout << "Histogram: " << std::endl;	
-	    
-	    for (auto & entry : hist) 
-	        std::cout << entry << " "; 
-	        std::cout <<  std::endl;
+	std::cout << std::endl; 
+	std::cout << "Histogram: " << std::endl;	
+	
+	for (auto & entry : hist_) 
+		std::cout << entry << " "; 
+	std::cout <<  std::endl;
 }
 
 
-	

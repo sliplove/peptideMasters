@@ -18,7 +18,7 @@ std::vector<double> get_start_mass(unsigned N, double peptide_mass_) {
 }
 
 std::vector<double>  update_spectrum_by_new_mass(const std::vector<double> &  mass_, 
-            const std::vector<std::pair<unsigned, unsigned>> & rule_, Peptide & peptide) {
+    const std::vector<std::pair<unsigned, unsigned>> & rule_, Peptide & peptide) {
     
     unsigned id = floor(unif_rand() * rule_.size());
     unsigned beg = rule_[id].first;
@@ -61,32 +61,32 @@ std::vector<double>  update_spectrum_by_new_mass(const std::vector<double> &  ma
     it_moved_plus = peptide.moved_plus_.begin();
     it_moved_minus = peptide.moved_minus_.begin();
     it_unmoved = peptide.unmoved_.begin();
-   
+    
     // 3-merge
     for (size_t i = 0; i < peptide.sorting_permutation_.size(); ++i) {
         if (peptide.spectrum_[*it_unmoved] < peptide.spectrum_[*it_moved_plus] && 
-                            peptide.spectrum_[*it_unmoved] < peptide.spectrum_[*it_moved_minus]) {
+            peptide.spectrum_[*it_unmoved] < peptide.spectrum_[*it_moved_minus]) {
             peptide.sorting_permutation_[i] = *it_unmoved++;
-        } else if (peptide.spectrum_[*it_moved_minus] < peptide.spectrum_[*it_moved_plus]) {
-            peptide.sorting_permutation_[i] = *it_moved_minus++;
-        } else {
-            peptide.sorting_permutation_[i] = *it_moved_plus++;
-        }
+    } else if (peptide.spectrum_[*it_moved_minus] < peptide.spectrum_[*it_moved_plus]) {
+        peptide.sorting_permutation_[i] = *it_moved_minus++;
+    } else {
+        peptide.sorting_permutation_[i] = *it_moved_plus++;
     }
+}
 
     // std::sort(peptide.spectrum_.begin(), peptide.spectrum_.end());
 
-    return mass;
+return mass;
 }
 
 
 
 
 Peptide::Peptide(const std::vector<std::vector<double>> &mat,
-                      const std::vector<std::pair<unsigned, unsigned>> &rule,
-                      const std::vector<double> & mass, 
-                      double peptide_mass) : rule_(rule), mat_(mat), peptide_mass_(peptide_mass) {
-        
+  const std::vector<std::pair<unsigned, unsigned>> &rule,
+  const std::vector<double> & mass, 
+  double peptide_mass) : rule_(rule), mat_(mat), peptide_mass_(peptide_mass) {
+    
     int nrow = mat_.size() - 1;
     int ncol = mat_[0].size();
 
@@ -105,11 +105,11 @@ Peptide::Peptide(const std::vector<std::vector<double>> &mat,
 
     sorting_permutation_.resize(spectrum_.size() - 1);
     std::iota(sorting_permutation_.begin(),
-              sorting_permutation_.end(),
-              0);
+      sorting_permutation_.end(),
+      0);
     std::sort(sorting_permutation_.begin(),
-              sorting_permutation_.end(),
-              [this](size_t i, size_t j) -> bool { return this->spectrum_[i] < this->spectrum_[j]; });
+      sorting_permutation_.end(),
+      [this](size_t i, size_t j) -> bool { return this->spectrum_[i] < this->spectrum_[j]; });
 
     unmoved_.resize(spectrum_.size());
     moved_plus_.resize(spectrum_.size());
@@ -124,27 +124,27 @@ void Peptide::copy_spectrum_(const Peptide & peptide) {
     spectrum_ = peptide.get_spectrum_();
     sorting_permutation_ = peptide.get_sorting_permutation_();  
 }
-   
+
 void Peptide::print() {
 
     std::cout << "Spectrum of peptide: " << std::endl;
 
     for (auto & entry : spectrum_) 
         std::cout << entry << ", "; 
-        std::cout <<  std::endl;
+    std::cout <<  std::endl;
 
     std::cout << "Sorted Spectrum of peptide: " << std::endl;
 
     for (auto & entry : sorting_permutation_) 
         std::cout << spectrum_[entry] << ", "; 
-        std::cout <<  std::endl;
+    std::cout <<  std::endl;
 
 
     std::cout << "Sorting permutation: " << std::endl;
 
     for (auto & entry : sorting_permutation_) 
         std::cout << entry << " "; 
-        std::cout <<  std::endl;
+    std::cout <<  std::endl;
 
 }
 
@@ -166,11 +166,11 @@ void Peptide::clear(const std::vector<double> & mass) {
 
     sorting_permutation_.resize(spectrum_.size() - 1);
     std::iota(sorting_permutation_.begin(),
-              sorting_permutation_.end(),
-              0);
+      sorting_permutation_.end(),
+      0);
     std::sort(sorting_permutation_.begin(),
-              sorting_permutation_.end(),
-              [this](size_t i, size_t j) -> bool { return this->spectrum_[i] < this->spectrum_[j]; });
+      sorting_permutation_.end(),
+      [this](size_t i, size_t j) -> bool { return this->spectrum_[i] < this->spectrum_[j]; });
 
     unmoved_.resize(spectrum_.size());
     moved_plus_.resize(spectrum_.size());

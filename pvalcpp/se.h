@@ -11,10 +11,10 @@
 
 
 #include "unif.h"
-#include "wl.h"
+#include "mhstate.h"
 
 class Estimate {
 public:
   double mu_hat, se, var_hat, lambda;
-  Estimate(const std::vector<double> & trajectory, const WLsimulator & );
+  Estimate(const std::vector<double> & trajectory, const MHstate & );
 };

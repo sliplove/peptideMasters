@@ -1,6 +1,6 @@
 #include "se.h"
 
-  Estimate::Estimate(const std::vector<double> & trajectory, const WLsimulator & wl) {
+Estimate::Estimate(const std::vector<double> & trajectory, const MHstate & mh) {
   int n = trajectory.size();
   int b = floor(sqrt(n));
   int a = n - b + 1;
@@ -13,7 +13,7 @@
   cumsum[0] = 0;
 
   for (int i = 0; i < n; ++i) {
-    prob_const += exp((-1) *  wl.get_single_weight(trajectory[i]));;
+    prob_const += exp((-1) *  mh.get_single_weight(trajectory[i]));;
   }
   
   prob_const = prob_const / trajectory.size();
@@ -21,7 +21,7 @@
   // std::cout << "prob_const = " << prob_const << std::endl;
 
   for (int i = 0; i < n; ++i) {
-    elements[i] = (trajectory[i] >=  wl.get_max_score_())*exp((-1) * wl.get_single_weight(trajectory[i])) / prob_const;
+    elements[i] = (trajectory[i] >=  mh.get_max_score_())*exp((-1) * mh.get_single_weight(trajectory[i])) / prob_const;
     cumsum[i + 1] = cumsum[i] + elements[i];
   }
 

@@ -8,38 +8,56 @@
 #include <string>
 #include <fstream>
 #include <sstream>
+#include <string>
 
+#include "cxxopts.hpp"
 #include "peptide.h"
 #include "wl.h"
 #include "metropolis.h"
 #include "unif.h"
+#include "mhstate.h"
 
 
 int main(int argc, char *argv[])
 {
 	srand (13);
+	cxxopts::Options options(argv[0], "Markov Chain Monte Carlo method");
+	options.add_options()
+	("s,spectrum", "Input spectrum", cxxopts::value<std::string>(), "FILE")
+	("m,matrix", "Fragmentation Marix", cxxopts::value<std::string>(), "FILE")
+	("r,rule", "Rule graph", cxxopts::value<std::string>(), "FILE")
+	("precursor", "Precursor mass", cxxopts::value<double>(), "FLOAT")
+	("min", "Min score", cxxopts::value<double>()->default_value("0"), "FLOAT")
+	("max", "Max score", cxxopts::value<double>(), "FLOAT")
+	("phi_begin", "Initial phi value (WL option)", cxxopts::value<double>()->default_value("1.8"), "FLOAT")
+	("phi_end", "Final phi value (WL option)", cxxopts::value<double>()->default_value("1"), "FLOAT")
+	("step", "Number of Wang-Landau iterations", cxxopts::value<unsigned>()->default_value("10000"), "N")  
+	("run_iter", "Number of Monte-Carlo iterations", cxxopts::value<unsigned>()->default_value("50000"), "N")  
+	("eps", "Accuracy", cxxopts::value<double>()->default_value("0.02"), "FLOAT")
+	("level", "Quantile level for confident interval", cxxopts::value<double>()->default_value("0.95"), "FLOAT");
 
-	// read input files
 
-	std::ifstream file_mat(argv[1]);
-	std::ifstream file_rule(argv[2]);
-	std::ifstream file_spectrum(argv[3]);
+	options.parse(argc, argv);
 
-	double NLP_MASS = atof(argv[4]);
-	double MIN_SCORE = atoi(argv[5]);
-	double MAX_SCORE = atoi(argv[6]);
-	double PHI_B = atof(argv[7]);
-	double PHI_E = atof(argv[8]);	
-	int STEP_LENGTH = atoi(argv[9]);
-	int MIN_STEPS_RUN = atoi(argv[10]);
-	double EPS = atof(argv[11]);
-	double LEVEL = atof(argv[12]);
+	std::cout << "alert!" << options["spectrum"].as<std::string>() << std::endl; 	
 
+	std::ifstream file_mat(options["matrix"].as<std::string>());
+	std::ifstream file_rule(options["rule"].as<std::string>());
+	std::ifstream file_spectrum(options["spectrum"].as<std::string>());
+	double NLP_MASS = options["precursor"].as<double>();
+	double MIN_SCORE = options["min"].as<double>();
+	double MAX_SCORE = options["max"].as<double>();
+	double PHI_B = options["phi_begin"].as<double>();
+	double PHI_E = options["phi_end"].as<double>();	
+	unsigned STEP_LENGTH = options["step"].as<unsigned>();
+	unsigned MIN_STEPS_RUN = options["run_iter"].as<unsigned>();
+	double EPS = options["eps"].as<double>();	
+	double LEVEL = options["level"].as<double>();
 
 
 	std::vector<std::vector<double> > mat;
 
-    double elem;
+	double elem;
 	std::string line;
 	
 	while(!file_mat.eof()) {
@@ -55,9 +73,9 @@ int main(int argc, char *argv[])
 	int nrow = mat.size() - 1;
 	int ncol = mat[0].size();
 
-	// std::cout << ncol  << " " << nrow << std::endl;
+	std::cout << ncol  << " " << nrow << std::endl;
 
-    std::vector<std::pair<unsigned, unsigned> > rule (ncol);
+	std::vector<std::pair<unsigned, unsigned> > rule (ncol);
 	double elem1, elem2;
 	int i = 0;
 	while(!file_rule.eof()) {
@@ -83,14 +101,18 @@ int main(int argc, char *argv[])
 	file_mat.close();
 	file_rule.close();
 	file_spectrum.close();
+
 	std::cout << MIN_SCORE << MAX_SCORE << PHI_B << PHI_E << STEP_LENGTH;
 
-	// get weights	
-	WLsimulator wl(MIN_SCORE, MAX_SCORE, PHI_B, PHI_E, STEP_LENGTH);
+	MHstate mh(exp_spectrum, mat, rule, NLP_MASS, MIN_SCORE, MAX_SCORE); 
+	
+	// // get weights	
+	WLsimulator wl(PHI_B, PHI_E, STEP_LENGTH);
 	wl.print();
 
+	// wl.wl_step(mh, PHI_B, true);
 	std::vector<double> weights;
-	weights = wl.wl_full(exp_spectrum, mat, rule, NLP_MASS, true);
+	weights = wl.wl_full(mh, true);
 
 	std::cout << "Wang-Landau weights" << std::endl;
 	for (auto & w: weights) {
@@ -99,11 +121,9 @@ int main(int argc, char *argv[])
 
 	std::cout << std::endl << std::endl;
 
-	// mh step
-	Metropolis run(exp_spectrum, mat, rule, NLP_MASS, wl);
-
-	std::vector<double> start_mass = get_start_mass(ncol, NLP_MASS);
-    run.hit_run(start_mass, MIN_STEPS_RUN , EPS, LEVEL);
+	// // mh step
+	Metropolis run(mh);
+	run.hit_run(MIN_STEPS_RUN, EPS, LEVEL);
 
 	return 0;
 }
