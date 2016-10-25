@@ -39,8 +39,6 @@ int main(int argc, char *argv[])
 
 	options.parse(argc, argv);
 
-	std::cout << "alert!" << options["spectrum"].as<std::string>() << std::endl; 	
-
 	std::ifstream file_mat(options["matrix"].as<std::string>());
 	std::ifstream file_rule(options["rule"].as<std::string>());
 	std::ifstream file_spectrum(options["spectrum"].as<std::string>());
@@ -73,7 +71,6 @@ int main(int argc, char *argv[])
 	int nrow = mat.size() - 1;
 	int ncol = mat[0].size();
 
-	std::cout << ncol  << " " << nrow << std::endl;
 
 	std::vector<std::pair<unsigned, unsigned> > rule (ncol);
 	double elem1, elem2;
@@ -102,9 +99,11 @@ int main(int argc, char *argv[])
 	file_rule.close();
 	file_spectrum.close();
 
-	std::cout << MIN_SCORE << MAX_SCORE << PHI_B << PHI_E << STEP_LENGTH;
+	std::cout << MIN_SCORE << " " << MAX_SCORE << " " << PHI_B << " " << PHI_E << " " << STEP_LENGTH << std::endl;
 
 	MHstate mh(exp_spectrum, mat, rule, NLP_MASS, MIN_SCORE, MAX_SCORE); 
+
+	mh.print_weights_();
 	
 	// // get weights	
 	WLsimulator wl(PHI_B, PHI_E, STEP_LENGTH);

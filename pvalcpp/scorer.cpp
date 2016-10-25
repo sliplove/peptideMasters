@@ -1,7 +1,16 @@
-#include "psm.h"
+#include <cmath>
+#include <cstdint>
+#include <cstdlib>
+#include <algorithm>
+#include <utility>
+#include <iostream>
+#include <cassert>
+#include <queue>
 
-void Psm::score_peak(const std::vector<double> & exp_spectrum_, 
-  const Peptide & peptide , bool keep_both) {
+#include "unif.h"
+#include "scorer.h"
+
+void Scorer::score_peak(const Peptide & peptide , bool keep_both) {
   
   std::vector<double> spect = peptide.get_spectrum_();
   std::vector<size_t> sort_perm = peptide.get_sorting_permutation_();

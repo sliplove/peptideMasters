@@ -1,5 +1,4 @@
 #include "wl.h"
-#include "psm.h"
 
 void WLsimulator::wl_step(MHstate & mh, double phi, bool trace) {
 	weights_ = mh.get_weights_();
@@ -14,7 +13,7 @@ void WLsimulator::wl_step(MHstate & mh, double phi, bool trace) {
 	
 	for (auto & h : hist_) { h = 0; }
 
-		double lphi =  log(phi);
+	double lphi =  log(phi);
 	int i = 0, idx;
 	
 	do {

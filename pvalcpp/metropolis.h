@@ -13,7 +13,6 @@
 #include "mhstate.h"
 #include "unif.h"
 #include "peptide.h"
-#include "psm.h"
 
 class Metropolis {
 private:

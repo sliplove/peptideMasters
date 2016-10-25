@@ -12,7 +12,7 @@
 
 #include "peptide.h"
 #include "unif.h"
-#include "psm.h"
+#include "scorer.h"
 
 class MHstate {
 private:	
