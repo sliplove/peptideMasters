@@ -1,5 +1,4 @@
 #include <cmath>
-#include <cstdint>
 #include <cstdlib>
 #include <algorithm>
 #include <utility>
@@ -7,8 +6,10 @@
 #include <cassert>
 #include <queue>
 
-#include "unif.h"
+#include "unif.h" 
 #include "scorer.h"
+
+const double MASS_PROTON = 1.00728;
 
 void Scorer::score_peak(const Peptide & peptide , bool keep_both) {
   
@@ -21,12 +22,8 @@ void Scorer::score_peak(const Peptide & peptide , bool keep_both) {
 
   for (int i = 0; i < sort_perm.size(); ++i) {
     spectrum_[i]  = spect[sort_perm[i]];
-    // std::cout << spectrum_[i] << " ";
   }
-  // std::cout << std::endl;
-
-  // std::vector<double> spectrum_ = peptide.get_spectrum_();
-
+  
   score_ = 0;
 
   auto pmb = spectrum_.begin();
@@ -34,14 +31,14 @@ void Scorer::score_peak(const Peptide & peptide , bool keep_both) {
   auto rpme = std::reverse_iterator<decltype(spectrum_.begin())>(spectrum_.begin());
 
   for (const auto& rp: exp_spectrum_) {
-    double thr = rp - PRODUCT_ION_THRESH - MASS_PROTON;
+    double thr = rp - product_ion_thresh_ - MASS_PROTON;
 
     while (pmb != spectrum_.end() && *pmb <= thr) {
       pmb++;
     }
     
     if (pmb !=spectrum_.end()) {
-      if (std::abs(*pmb + MASS_PROTON - rp) < PRODUCT_ION_THRESH) {
+      if (std::abs(*pmb + MASS_PROTON - rp) < product_ion_thresh_) {
         score_ += 1;
         // std::cout << *pmb << " " << rp << std::endl;
         continue;
@@ -59,7 +56,7 @@ void Scorer::score_peak(const Peptide & peptide , bool keep_both) {
     }
 
     if (pme != rpme) {
-      if (std::abs(nlp - *pme + MASS_PROTON - rp) < PRODUCT_ION_THRESH) {
+      if (std::abs(nlp - *pme + MASS_PROTON - rp) < product_ion_thresh_) {
         score_ += 1;
         // std::cout << nlp - *pme + MASS_PROTON << " " << rp << std::endl;
         continue;

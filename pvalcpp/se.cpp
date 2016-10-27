@@ -1,6 +1,16 @@
+#include <cmath>
+#include <cstdint>
+#include <cstdlib>
+#include <algorithm>
+#include <utility>
+#include <iostream>
+#include <cassert>
+#include <queue>
+
 #include "se.h"
 
-Estimate::Estimate(const std::vector<double> & trajectory, const MHstate & mh) {
+Estimate::Estimate(const std::vector<double> & trajectory, const std::vector<double> &weights,
+                                         double min_score, double max_score) {
   int n = trajectory.size();
   int b = floor(sqrt(n));
   int a = n - b + 1;
@@ -13,7 +23,7 @@ Estimate::Estimate(const std::vector<double> & trajectory, const MHstate & mh) {
   cumsum[0] = 0;
 
   for (int i = 0; i < n; ++i) {
-    prob_const += exp((-1) *  mh.get_single_weight(trajectory[i]));;
+    prob_const += exp((-1) *  weights[trajectory[i] + min_score]);
   }
   
   prob_const = prob_const / trajectory.size();
@@ -21,7 +31,7 @@ Estimate::Estimate(const std::vector<double> & trajectory, const MHstate & mh) {
   // std::cout << "prob_const = " << prob_const << std::endl;
 
   for (int i = 0; i < n; ++i) {
-    elements[i] = (trajectory[i] >=  mh.get_max_score_())*exp((-1) * mh.get_single_weight(trajectory[i])) / prob_const;
+    elements[i] = (trajectory[i] >=  max_score)*exp((-1) * weights[trajectory[i] + min_score])/ prob_const;
     cumsum[i + 1] = cumsum[i] + elements[i];
   }
 

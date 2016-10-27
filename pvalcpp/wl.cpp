@@ -1,7 +1,6 @@
 #include "wl.h"
 
-void WLsimulator::wl_step(MHstate & mh, double phi, bool trace) {
-	weights_ = mh.get_weights_();
+void WLsimulator::wl_step(double phi, bool trace) {
 
 	std::cout << "wl weights" <<  std::endl;
 	for (auto & entry : weights_) {
@@ -9,22 +8,18 @@ void WLsimulator::wl_step(MHstate & mh, double phi, bool trace) {
 	}
 
 	std::cout << std::endl;
-	hist_.resize(weights_.size());
 	
-	for (auto & h : hist_) { h = 0; }
-
+	for (auto &h : hist_) { h = 0; }
+	
 	double lphi =  log(phi);
 	int i = 0, idx;
 	
 	do {
-		idx = mh.step();
-			// std::cout << "idx = " << idx << std::endl;
-		hist_[idx] = hist_[idx] + 1;
-		weights_[idx] = weights_[idx] - lphi;
+		idx = mh_.step(weights_);
+		hist_[idx]++ ;
+		weights_[idx] -= lphi;
 		i++;
 		
-		mh.set_weights(weights_);
-
 		if (i % 1000 == 0) {
 			if (trace) {
 				std::cout << "iteration " << i << std::endl;
@@ -45,18 +40,12 @@ void WLsimulator::wl_step(MHstate & mh, double phi, bool trace) {
 
 }
 
-std::vector<double>  WLsimulator::wl_full(MHstate & mh, bool trace) {
+std::vector<double>  WLsimulator::wl_full(bool trace) {
 	double phi = phi_begin_;
 	if (trace) 
 		std::cout << "wl step: phi = " << phi << std::endl;
 	
-	mh.print_current_state_();
-	mh.drop_current_state_();
-	std::cout << "drop current state" << std::endl; 
-	mh.print_current_state_();
-	wl_step(mh, phi, true);
-	std::cout << "mh weights_" << std::endl; 
-	mh.print_weights_();
+	wl_step(phi, true);
 	
 	for (auto & entry : weights_) {
 		std::cout << entry;
@@ -73,11 +62,7 @@ std::vector<double>  WLsimulator::wl_full(MHstate & mh, bool trace) {
 
 	while(phi > phi_end_) {
 		phi = sqrt(phi);
-  		// std::cout << "phi = " << phi << std::endl;
-		mh.drop_current_state_();
-  		// mh.print_current_state_(	);
-		mh.print_weights_();
-		wl_step(mh, phi, true);
+  		wl_step(phi, true);
 
 
 		auto maxw =  std::max_element(weights_.begin(), weights_.end());

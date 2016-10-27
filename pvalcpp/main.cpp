@@ -16,7 +16,7 @@
 #include "metropolis.h"
 #include "unif.h"
 #include "mhstate.h"
-
+#include "scorer.h"
 
 int main(int argc, char *argv[])
 {
@@ -34,7 +34,9 @@ int main(int argc, char *argv[])
 	("step", "Number of Wang-Landau iterations", cxxopts::value<unsigned>()->default_value("10000"), "N")  
 	("run_iter", "Number of Monte-Carlo iterations", cxxopts::value<unsigned>()->default_value("50000"), "N")  
 	("eps", "Accuracy", cxxopts::value<double>()->default_value("0.02"), "FLOAT")
-	("level", "Quantile level for confident interval", cxxopts::value<double>()->default_value("0.95"), "FLOAT");
+	("level", "Quantile level for confident interval", cxxopts::value<double>()->default_value("0.95"), "FLOAT")
+	("product_ion_thresh", "Score parameter", cxxopts::value<double>()->default_value("0.5"), "FLOAT");
+	
 
 
 	options.parse(argc, argv);
@@ -51,6 +53,7 @@ int main(int argc, char *argv[])
 	unsigned MIN_STEPS_RUN = options["run_iter"].as<unsigned>();
 	double EPS = options["eps"].as<double>();	
 	double LEVEL = options["level"].as<double>();
+	double PRODUCT_ION_THRESH = options["product_ion_thresh"].as<double>();
 
 
 	std::vector<std::vector<double> > mat;
@@ -99,30 +102,33 @@ int main(int argc, char *argv[])
 	file_rule.close();
 	file_spectrum.close();
 
-	std::cout << MIN_SCORE << " " << MAX_SCORE << " " << PHI_B << " " << PHI_E << " " << STEP_LENGTH << std::endl;
+	std::cout << MIN_SCORE << " " << MAX_SCORE << " " << PHI_B << " " <<
+									 PHI_E << " " << STEP_LENGTH << std::endl;
 
-	MHstate mh(exp_spectrum, mat, rule, NLP_MASS, MIN_SCORE, MAX_SCORE); 
-
-	mh.print_weights_();
+	// set scorer and metropolis parameters 
+	Scorer scorer(exp_spectrum, PRODUCT_ION_THRESH);
+	Metropolis mh(mat, rule, NLP_MASS, MIN_SCORE, MAX_SCORE, scorer);
+	mh.get_state_().print_current_state_();
 	
-	// // get weights	
-	WLsimulator wl(PHI_B, PHI_E, STEP_LENGTH);
+
+	// // // get weights	
+	WLsimulator wl(mh, PHI_B, PHI_E, STEP_LENGTH);
 	wl.print();
 
-	// wl.wl_step(mh, PHI_B, true);
+	// wl.wl_step(PHI_B, true);
 	std::vector<double> weights;
-	weights = wl.wl_full(mh, true);
+	weights = wl.wl_full(true);
 
 	std::cout << "Wang-Landau weights" << std::endl;
 	for (auto & w: weights) {
 		std::cout << w << " " ;
 	}
 
-	std::cout << std::endl << std::endl;
+	// std::cout << std::endl << std::endl;
 
-	// // mh step
-	Metropolis run(mh);
-	run.hit_run(MIN_STEPS_RUN, EPS, LEVEL);
+	// // // mh step
+	// // Metropolis run(mh);
+	// // run.hit_run(MIN_STEPS_RUN, EPS, LEVEL);
 
 	return 0;
 }

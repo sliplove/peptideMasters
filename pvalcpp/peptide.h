@@ -37,8 +37,7 @@ public:
     peptide_mass_(peptide.peptide_mass_)
     {}
     
-    // double get_score() { return score_; }
-    void copy_spectrum_(const Peptide & );
+    void set_spectrum_(const Peptide & );
     
     double get_peptide_mass_() const { return peptide_mass_; }
     std::vector<double> get_spectrum_() const { return spectrum_; }

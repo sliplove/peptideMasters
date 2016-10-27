@@ -120,7 +120,7 @@ Peptide::Peptide(const std::vector<std::vector<double>> &mat,
 
 
 
-void Peptide::copy_spectrum_(const Peptide & peptide) {
+void Peptide::set_spectrum_(const Peptide & peptide) {
     spectrum_ = peptide.get_spectrum_();
     sorting_permutation_ = peptide.get_sorting_permutation_();  
 }
