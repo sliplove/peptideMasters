@@ -40,7 +40,7 @@ public:
     	current_state_ = get_start_mass(l, mass);
     }
     
-    const std::vector<double> &get_current_state_() const {
+    const std::vector<double> & get_current_state_() const{
         return current_state_;
     }
 

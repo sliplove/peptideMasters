@@ -41,14 +41,27 @@ public:
     
     double get_peptide_mass_() const { return peptide_mass_; }
     std::vector<double> get_spectrum_() const { return spectrum_; }
+    
+    double get_size() const { return spectrum_.size(); }
+   
     std::vector<size_t> get_sorting_permutation_() const {
         return sorting_permutation_; 
     }
 
+    void increment_spectrum_(unsigned i, double delta) {
+        spectrum_[i] += delta;
+    }
+
+    void set_sorting_permutation_(unsigned i, unsigned value) {
+        sorting_permutation_[i] = value;
+    }
+ 
     void print();
-    friend std::vector<double> update_spectrum_by_new_mass(const std::vector<double> & ,
-        const std::vector<std::pair<unsigned, unsigned>> &,
-        Peptide & );
     void clear(const std::vector<double> &);
+
+    auto moved_minus_begin() {return moved_minus_.begin();}
+    auto moved_plus_begin() {return moved_plus_.begin();}
+    auto unmoved_begin() {return unmoved_.begin();}
+    
 
 };

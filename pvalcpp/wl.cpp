@@ -1,7 +1,7 @@
 #include "wl.h"
 
 void WLsimulator::wl_step(double phi, bool trace) {
-
+	
 	std::cout << "wl weights" <<  std::endl;
 	for (auto & entry : weights_) {
 		std::cout << entry << " ";
@@ -97,6 +97,9 @@ void WLsimulator::print() {
 	for (auto & entry : hist_) 
 		std::cout << entry << " "; 
 	std::cout <<  std::endl;
+
+	mh_.get_state_().print_current_state_();
+	
 }
 
 

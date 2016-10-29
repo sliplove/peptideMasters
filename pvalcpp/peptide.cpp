@@ -17,70 +17,6 @@ std::vector<double> get_start_mass(unsigned N, double peptide_mass_) {
     return mass_;
 }
 
-std::vector<double>  update_spectrum_by_new_mass(const std::vector<double> &  mass_, 
-    const std::vector<std::pair<unsigned, unsigned>> & rule_, Peptide & peptide) {
-    
-    unsigned id = floor(unif_rand() * rule_.size());
-    unsigned beg = rule_[id].first;
-    unsigned end = rule_[id].second;
-    
-    double beg_mass = mass_[beg], end_mass = mass_[end];
-    double delta = unif(-beg_mass, end_mass);
-
-    std::vector<double> mass (mass_);
-    
-    mass[beg] = beg_mass + delta;
-    mass[end] = end_mass - delta;
-    
-    auto it_moved_plus = peptide.moved_plus_.begin();
-    auto it_moved_minus = peptide.moved_minus_.begin();
-    auto it_unmoved = peptide.unmoved_.begin();
-
-    for (size_t i : peptide.sorting_permutation_) {
-        if (peptide.mat_[i][beg] == peptide.mat_[i][end]) {
-            *it_unmoved++ = i;
-        } else if (peptide.mat_[i][beg]) {
-            *it_moved_plus++ = i;
-            peptide.spectrum_[i] += delta;
-        } else {
-            *it_moved_minus++ = i;
-            peptide.spectrum_[i] -= delta;
-        }
-    }
-
-    peptide.unmoved_.resize(peptide.spectrum_.size());
-    peptide.moved_plus_.resize(peptide.spectrum_.size());
-    peptide.moved_minus_.resize(peptide.spectrum_.size());
-
-    // Add sentineles
-    *it_moved_plus = peptide.spectrum_.size() - 1;
-    *it_moved_minus = peptide.spectrum_.size() - 1;
-    *it_unmoved = peptide.spectrum_.size() - 1;
-
-    // Rewind
-    it_moved_plus = peptide.moved_plus_.begin();
-    it_moved_minus = peptide.moved_minus_.begin();
-    it_unmoved = peptide.unmoved_.begin();
-    
-    // 3-merge
-    for (size_t i = 0; i < peptide.sorting_permutation_.size(); ++i) {
-        if (peptide.spectrum_[*it_unmoved] < peptide.spectrum_[*it_moved_plus] && 
-            peptide.spectrum_[*it_unmoved] < peptide.spectrum_[*it_moved_minus]) {
-            peptide.sorting_permutation_[i] = *it_unmoved++;
-    } else if (peptide.spectrum_[*it_moved_minus] < peptide.spectrum_[*it_moved_plus]) {
-        peptide.sorting_permutation_[i] = *it_moved_minus++;
-    } else {
-        peptide.sorting_permutation_[i] = *it_moved_plus++;
-    }
-}
-
-    // std::sort(peptide.spectrum_.begin(), peptide.spectrum_.end());
-
-return mass;
-}
-
-
-
 
 Peptide::Peptide(const std::vector<std::vector<double>> &mat,
   const std::vector<std::pair<unsigned, unsigned>> &rule,
@@ -145,6 +81,7 @@ void Peptide::print() {
     for (auto & entry : sorting_permutation_) 
         std::cout << entry << " "; 
     std::cout <<  std::endl;
+    
 
 }
 

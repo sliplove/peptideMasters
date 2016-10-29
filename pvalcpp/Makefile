@@ -1,5 +1,5 @@
 CC=g++
-CFLAGS=-g -c -O2 -std=c++11
+CFLAGS=-g -c -O2 -std=c++14
 
 all: main
  
