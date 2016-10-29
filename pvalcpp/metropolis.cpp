@@ -1,6 +1,10 @@
+#include <cstdint>
+#include <cstdlib>
+#include <iostream>
+
 #include "metropolis.h"
 #include "unif.h"
-
+#include "se.h"
 
 std::vector<double>  Metropolis::update_spectrum_by_new_mass(const std::vector<double> &mass_) {
     

@@ -1,13 +1,5 @@
 #pragma once 
-#include <cmath>
-#include <cstdint>
 #include <vector>
-#include <cstdlib>
-#include <algorithm>
-#include <utility>
-#include <iostream>
-#include <cassert>
-#include <queue>
 
 #include "peptide.h"
 #include "metropolis.h"

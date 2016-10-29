@@ -1,15 +1,6 @@
 #pragma once 
-#include <cmath>
-#include <cstdint>
 #include <vector>
-#include <cstdlib>
-#include <algorithm>
-#include <utility>
-#include <iostream>
-#include <cassert>
-#include <queue>
 
-#include "se.h"
 #include "mhstate.h"
 #include "peptide.h"
 #include "scorer.h"

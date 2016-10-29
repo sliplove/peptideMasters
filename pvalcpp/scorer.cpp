@@ -1,10 +1,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <algorithm>
-#include <utility>
 #include <iostream>
-#include <cassert>
-#include <queue>
 
 #include "unif.h" 
 #include "scorer.h"

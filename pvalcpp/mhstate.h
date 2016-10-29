@@ -1,18 +1,11 @@
-
 #pragma once 
-#include <cmath>
-#include <cstdint>
 #include <vector>
-#include <cstdlib>
-#include <algorithm>
-#include <utility>
 #include <iostream>
-#include <cassert>
-#include <queue>
+#include <cmath>
+#include <cstdlib>
 
 #include "peptide.h"
-#include "unif.h"
-#include "scorer.h"
+
 
 class MHstate {
 private:	

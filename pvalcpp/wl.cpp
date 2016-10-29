@@ -1,3 +1,8 @@
+#include <cstdint>
+#include <cstdlib>
+#include <iostream>
+#include <algorithm>
+
 #include "wl.h"
 
 void WLsimulator::wl_step(double phi, bool trace) {

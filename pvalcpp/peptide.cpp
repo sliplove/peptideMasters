@@ -1,3 +1,9 @@
+#include <cstdint>
+#include <cstdlib>
+#include <algorithm>
+#include <iostream>
+
+#include "unif.h"
 #include "peptide.h"
 
 std::vector<double> get_start_mass(unsigned N, double peptide_mass_) {
