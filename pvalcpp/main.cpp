@@ -112,10 +112,8 @@ int main(int argc, char *argv[])
 	Peptide peptide(mat, rule, state.get_current_state_(), NLP_MASS);
 
 	Metropolis mh(mat, rule, NLP_MASS, MIN_SCORE, MAX_SCORE, state, peptide, scorer);
-	mh.get_state_().print_current_state_();
-		
-
-	// // // // get weights	
+	
+	// get weights	
 	WLsimulator wl(mh, PHI_B, PHI_E, STEP_LENGTH);
 	wl.print();
 
@@ -130,9 +128,8 @@ int main(int argc, char *argv[])
 
 	std::cout << std::endl << std::endl;
 
-	// // // mh step
-	Metropolis run(mh);
-	run.hit_run(MIN_STEPS_RUN, EPS, LEVEL, weights);
+	// mh step
+	mh.hit_run(MIN_STEPS_RUN, EPS, LEVEL, weights);
 
 	return 0;
 }
