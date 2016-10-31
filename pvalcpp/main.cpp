@@ -19,6 +19,7 @@ int main(int argc, char *argv[])
 	srand (13);
 	cxxopts::Options options(argv[0], "Markov Chain Monte Carlo method");
 	options.add_options()
+	("h,help", "Print help")
 	("s,spectrum", "Input spectrum", cxxopts::value<std::string>(), "FILE")
 	("m,matrix", "Fragmentation Marix", cxxopts::value<std::string>(), "FILE")
 	("r,rule", "Rule graph", cxxopts::value<std::string>(), "FILE")
@@ -32,10 +33,14 @@ int main(int argc, char *argv[])
 	("eps", "Accuracy", cxxopts::value<double>()->default_value("0.02"), "FLOAT")
 	("level", "Quantile level for confident interval", cxxopts::value<double>()->default_value("0.95"), "FLOAT")
 	("product_ion_thresh", "Score parameter", cxxopts::value<double>()->default_value("0.5"), "FLOAT");
-	
-
-
+     
+    // options.parse_positional(std::vector<std::string>({"spectrum", "matrix", "rule"}));
 	options.parse(argc, argv);
+
+	if (options.count("help")) {
+        std::cout << options.help() << std::endl;
+        exit(0);
+    }
 
 	std::ifstream file_mat(options["matrix"].as<std::string>());
 	std::ifstream file_rule(options["rule"].as<std::string>());
@@ -123,11 +128,11 @@ int main(int argc, char *argv[])
 		std::cout << w << " " ;
 	}
 
-	// std::cout << std::endl << std::endl;
+	std::cout << std::endl << std::endl;
 
 	// // // mh step
-	// // Metropolis run(mh);
-	// // run.hit_run(MIN_STEPS_RUN, EPS, LEVEL);
+	Metropolis run(mh);
+	run.hit_run(MIN_STEPS_RUN, EPS, LEVEL, weights);
 
 	return 0;
 }
