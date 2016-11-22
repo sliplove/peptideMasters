@@ -1,4 +1,4 @@
-setwd("/home/sliplove/Documents/Masters/peptidegit/peptideMasters/")
+setwd("/home/sliplove/Documents/0Masters/gitcop/")
 library(Rcpp)
 library(coda)
 library(lattice)
@@ -6,23 +6,23 @@ library(gtools)
 sourceCpp("scorecpp/scoreR.cpp")
 set.seed(42)
 
-all.matches = read.table("all_matches.tsv", head = TRUE)
-id <- all.matches$LocalSpecIdx[5]
+df <- read.csv("../data/Selected.csv", head = TRUE)[1:21,]
+id <- 3
+idx <- which(df$ID == id)
 
-mat <- as.matrix(read.table(paste0("./tables/matrix_", id, ".txt")))
-rule <- as.matrix(read.table(paste0("./tables/rule_", id, ".txt")))
-exp_spectrum <- as.numeric(read.table(paste0("./tables/spectrum_", id, ".txt")))
+mat <- as.matrix(read.table(paste0("../data/mgf_input/matrix/matrix", df$LENGTH[idx], ".txt")))
+rule <- as.matrix(read.table(paste0("../data/mgf_input/rule/rule", df$LENGTH[idx], ".txt")))
+exp_spectrum <- as.numeric(read.table(paste0("../data/mgf_input/spectrum/spectrum", id, ".txt")))
 
 MASS_PROTON = 1.00728
 N_MASS = ncol(mat)
-TOTAL_MASS = all.matches$SpectrumMass[all.matches$LocalSpecIdx == id]
-MAX_SCORE = all.matches$Score[all.matches$LocalSpecIdx== id]
+TOTAL_MASS = df$MASS[idx]
+MAX_SCORE = df$SCORE.MDDPR.[idx]
 
 exp_spectrum <- sort(exp_spectrum)
 
 modify.mass <- function(mass)
   update_mass(mass, rule, FALSE)
-
 
 get.score <- function(mass)
   score_peak(exp_spectrum, mat %*% mass, TOTAL_MASS, MASS_PROTON, FALSE)
@@ -42,11 +42,11 @@ start.mass
 
 hit.n.run <- function(weights, start.mass, start.score,
                       step = 50000, min.n = 50000, eps = 0.02,
-                      level = 0.95, tracelevel = 1) {
+                      level = 0.95, tracelevel = 1, sss = 0) {
   z <- qnorm((1 + level) / 2)
   mh.res <- mh.weighted(min.n,
                         start.mass = start.mass, start.score = start.score,
-                        s.min = 0, w = weights, trace = tracelevel > 1)
+                        s.min = sss, w = weights, trace = tracelevel > 1)
   one.traj <- mh.res$traj
 
   sigma <- list()
@@ -54,11 +54,12 @@ hit.n.run <- function(weights, start.mass, start.score,
   repeat {
     prob.const <- sum(exp(-weights[one.traj - s.min + 1])) / length(one.traj)
     g <- function(x) (x >= MAX_SCORE) * exp(-weights[x - s.min + 1]) / prob.const
-    
     sigma <- se.obm(one.traj, g)
     w <- 2*z*sigma$se.mean
+# 
+#     if (tracelevel > 0)
+#       cat(sprintf("prob: %e\n", prob.const))
 
-    if (tracelevel > 0)
       cat(sprintf("length %d, mean: %e, sdev: %e, w: %e, eps: %g, lambda: %e, prob: %e\n",
                   length(one.traj), sigma$mu, sigma$se.mean,
                   w, w/sqrt(sigma$lambda), sigma$lambda, prob.const))
@@ -69,7 +70,7 @@ hit.n.run <- function(weights, start.mass, start.score,
     # FIXME: Inefficient
     mh.res <- mh.weighted(min.n,
                           start.mass = mh.res$mass, start.score = mh.res$score,
-                          s.min = 0, w = weights, trace = tracelevel > 1)
+                          s.min = sss, w = weights, trace = tracelevel > 1)
     one.traj <- c(one.traj, mh.res$traj)
   }
 
@@ -77,7 +78,8 @@ hit.n.run <- function(weights, start.mass, start.score,
 }
 
 
-res.est.unif <- hit.n.run(weights, start.mass = start.mass, start.score = start.score, min.n = 50000)
+res.est.unif <- hit.n.run(weights, start.mass = start.mass, start.score = start.score,
+                          min.n = 50000, sss = 0)
 length(res.est.unif$traj)
 tr <- res.est.unif$traj
 res.est.unif$mu
