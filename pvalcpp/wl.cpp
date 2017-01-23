@@ -1,26 +1,20 @@
-#include <cstdint>
+#include <cstdint>	
 #include <cstdlib>
 #include <iostream>
 #include <algorithm>
+#include <fstream>
 
 #include "wl.h"
 
-void WLsimulator::wl_step(double phi, bool trace) {
-	
-	std::cout << "wl weights" <<  std::endl;
-	for (auto & entry : weights_) {
-		std::cout << entry << " ";
-	}
-
-	std::cout << std::endl;
-	
+void WLsimulator::wl_step(pcg_extras::seed_seq_from<std::random_device>& rd, double phi, bool trace) {
 	for (auto &h : hist_) { h = 0; }
 	
 	double lphi =  log(phi);
 	int i = 0, idx;
 	
 	do {
-		idx = mh_.step(weights_);
+		idx = mh_.step(rd, weights_);
+		// std::cout << idx << std::endl;  
 		hist_[idx]++ ;
 		weights_[idx] -= lphi;
 		i++;
@@ -45,18 +39,18 @@ void WLsimulator::wl_step(double phi, bool trace) {
 
 }
 
-std::vector<double>  WLsimulator::wl_full(bool trace) {
+std::vector<double>  WLsimulator::wl_full(pcg_extras::seed_seq_from<std::random_device>& rd, bool trace) {
 	double phi = phi_begin_;
 	if (trace) 
 		std::cout << "wl step: phi = " << phi << std::endl;
 	
-	wl_step(phi, true);
+	wl_step(rd, phi, true);
 	
 	for (auto & entry : weights_) {
 		std::cout << entry;
 	}
-	std::cout << std::endl;
 
+	std::cout << std::endl;
 
 	auto maxw =  std::max_element(weights_.begin(), weights_.end());
 
@@ -67,8 +61,7 @@ std::vector<double>  WLsimulator::wl_full(bool trace) {
 
 	while(phi > phi_end_) {
 		phi = sqrt(phi);
-  		wl_step(phi, true);
-
+  		wl_step(rd, phi, true);
 
 		auto maxw =  std::max_element(weights_.begin(), weights_.end());
 
@@ -86,7 +79,7 @@ void WLsimulator::print() {
 	std::cout << std::endl; 
 	std::cout << "------- Wang-Landau parameters -----------";
 	std::cout << std::endl; 
-	std::cout << "Initial phi value: " << phi_begin_ << std::endl << "Сrowning phi value:" << phi_end_ << std::endl;
+	std::cout << "Initial phi value: " << phi_begin_ << std::endl << "Final	 phi value:" << phi_end_ << std::endl;
 	std::cout << "Number of iterations in wl step: " << thr_ << std::endl;
 
 	std::cout << std::endl; 

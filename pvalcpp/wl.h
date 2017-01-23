@@ -3,6 +3,8 @@
 
 #include "peptide.h"
 #include "metropolis.h"
+#include "../include/pcg_random.hpp"
+
 
 class WLsimulator {
 private:
@@ -40,8 +42,8 @@ public:
 		return true;
 	}
 
-	void wl_step(double , bool );
-	std::vector<double>  wl_full(bool);
+	void wl_step(pcg_extras::seed_seq_from<std::random_device>& rd, double , bool );
+	std::vector<double>  wl_full(pcg_extras::seed_seq_from<std::random_device>& rd, bool);
 	
 	
 	void print();

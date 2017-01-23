@@ -3,45 +3,45 @@
 #include <iostream>
 #include <cmath>
 #include <cstdlib>
-
+#include <random>
 #include "peptide.h"
 
 
 class MHstate {
 private:	
-	// std::vector<double> weights_;
 	std::vector<double> current_state_;
 
 public:
-    MHstate() { }
-	MHstate(int length, double peptide_mass)
-    {
-    	// weights_.resize(int(max_score - min_score + 1));
-    	current_state_ = get_start_mass(length, peptide_mass);
+	MHstate(int length, double peptide_mass, pcg_extras::seed_seq_from<std::random_device> & rd) {
+    	current_state_ = get_start_mass(rd, length, peptide_mass);
+    }
+
+    MHstate(const std::vector<double> & mass) {
+        current_state_ = mass;
     }
     
     void set_current_state_(std::vector<double> state) {
         current_state_ = state; 
     }
-
-    void drop_current_state_() {
-        double l = current_state_.size();
-        double mass = 0;
-        for (int i = 0; i < l; ++i) {
-            mass += current_state_[i];
-        }
-    	current_state_ = get_start_mass(l, mass);
-    }
-    
-    const std::vector<double> & get_current_state_() const{
+   
+    const std::vector<double> & get_current_state_() const {
         return current_state_;
-    }
+     }
 
-    void print_current_state_() const{
+    void print_current_state_() const {
         for (auto & entry : current_state_) {
-            std::cout << entry << " ";
+            printf("%e ", entry) ;
         }
         std::cout << std::endl;
+    }
+
+    void print_sum() const {
+        double sum = 0;
+        for (int i = 0; i < current_state_.size(); ++i)
+        {
+            sum += current_state_[i];
+        }
+        printf("sum=%e\n", sum );
     }
 
 };
