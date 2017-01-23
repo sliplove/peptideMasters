@@ -1,24 +1,43 @@
 #pragma once 
+#ifndef _SCORING_H
+#define _SCORING_H
+
+#include <cstring>
+#include <algorithm>
+#include <sstream>
+#include <cmath>
 #include <vector>
+#include <iostream>
+#include <iomanip>
+#include <cstdlib>
+#include <cassert>
 
 #include "peptide.h"
+#include "spectrum.h"
 
-class Scorer {
+namespace scoring {
+
+class SPCScorer {
+protected:
+    bool ppm_threshold_;
+    double product_ion_thresh_;
 private:
-	std::vector<double> exp_spectrum_;
-	double score_;
-	double product_ion_thresh_;
-public:
-	Scorer();
-	Scorer(const std::vector<double> &exp_spectrum, 
-		double product_ion_thresh)
-	:
-	exp_spectrum_(exp_spectrum),
-	product_ion_thresh_(product_ion_thresh) {}
+    // Some temporary buffers in order to save memory allocations
+    mutable std::vector<double> tspectrum_, tspectrumkb_;
 
-	double get_score_() const {return score_;}
-	std::vector<double>  get_exp_spectrum_() const {
-		return exp_spectrum_;
-	}
-	void score_peak (const Peptide &,  bool);
+public:
+    SPCScorer(double product_ion_thresh, bool ppm_threshold = false)
+    :
+    product_ion_thresh_(product_ion_thresh),
+    ppm_threshold_(ppm_threshold) {}
+    SPCScorer(const SPCScorer & scorer)
+    :
+    product_ion_thresh_(scorer.product_ion_thresh_),
+    ppm_threshold_(scorer.ppm_threshold_) {}
+
+    double score(Spectrum &spectrum, Peptide &nlp, bool) const;
+    double score_peak(Spectrum & , Peptide &,  bool);
 };
+}
+
+#endif
