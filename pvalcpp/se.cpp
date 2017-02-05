@@ -19,16 +19,18 @@ Estimate::Estimate(const std::vector<double> & trajectory, const std::vector<dou
   
   cumsum[0] = 0;
 
+  double minw = 0;  
   for (int i = 0; i < n; ++i) {
-    prob_const += exp((-1) *  weights[trajectory[i] + min_score]);
+    // std::cout << -weights[trajectory[i] + min_score] << std::endl;
+    prob_const += exp(-weights[trajectory[i] - min_score]);
   }
   
-  prob_const = prob_const / trajectory.size();
+  prob_const = prob_const / n;
 
   // std::cout << "prob_const = " << prob_const << std::endl;
 
   for (int i = 0; i < n; ++i) {
-    elements[i] = (trajectory[i] >=  max_score)*exp((-1) * weights[trajectory[i] + min_score])/ prob_const;
+    elements[i] = ((trajectory[i] >=  max_score) * exp(-weights[trajectory[i] - min_score]) )/ prob_const;
     cumsum[i + 1] = cumsum[i] + elements[i];
   }
 
@@ -47,10 +49,9 @@ Estimate::Estimate(const std::vector<double> & trajectory, const std::vector<dou
     tmp_sum += (part_means[i] - mu_hat)*(part_means[i] - mu_hat);
   } 
 
-  // std::cout << n*b*tmp_sum << std::endl;
+  double tmp = tmp_sum * n;
 
-
-  var_hat = n * b * tmp_sum / (a - 1) / a ;
+  var_hat = b * tmp / (a - 1) / a ;
   se = sqrt(var_hat / n);
   
   for (int i = 0; i < n; ++i) {
